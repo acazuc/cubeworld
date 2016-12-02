@@ -2,7 +2,7 @@ NAME = cubeworld
 
 CC = gcc
 
-CFLAGS = -g -Wall -Wextra -Werror -Ofast -pipe -mtune=native -march=native -flto=8
+CFLAGS = -g -Wall -Wextra -Werror -Ofast -pipe -mtune=native -march=native -flto=8 -funroll-loops
 
 INCLUDES_PATH = -I include
 
@@ -16,6 +16,7 @@ SRCS_NAME = main.c \
 	block.c \
 	simplex_noise.c \
 	t_vec3d.c \
+	perlin_noise.c \
 
 SRCS = $(addprefix $(SRCS_PATH), $(SRCS_NAME))
 

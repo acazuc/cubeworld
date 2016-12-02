@@ -3,7 +3,10 @@
 void world_init(t_world *world)
 {
 	memset(world, 0, sizeof(*world));
-	simplex_noise_init(&world->noise, 512, .50, 1337);
+	world->biome_noise_hgrid = 20;
+	world->biome_noise_octaves = 512;
+	world->biome_noise_gain = .20;
+	simplex_noise_init(&world->noise, 512, .5, 1337);
 }
 
 void world_chunk_add(t_world *world, t_chunk *chunk)

@@ -19,7 +19,8 @@ int main()
 	glClearColor(0.48, 0.65, 0.99, 0);
 	world_init(&env.world);
 	double start = glfwGetTime();
-	#define SQ 8
+	env.world.player.y = 50;
+	#define SQ 1
 	for (int8_t x = -SQ; x < SQ; ++x)
 	{
 		for (int8_t z = -SQ; z < SQ; ++z)
@@ -109,7 +110,7 @@ void windowResizeListener(GLFWwindow *window, int32_t width, int32_t height)
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(120, (float)width / (float)height, .01f, 2000);
+	gluPerspective(60, (float)width / (float)height, .01f, 2000);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 

@@ -18,8 +18,8 @@
 # define TO_RADIANS(angle) (angle / 180. * M_PI)
 # define TO_DEGREES(angle) (angle / M_PI / 180.)
 
-# define WINDOW_DEFAULT_WIDTH 1280
-# define WINDOW_DEFAULT_HEIGHT 720
+# define WINDOW_DEFAULT_WIDTH 1920
+# define WINDOW_DEFAULT_HEIGHT 1000
 # define WORLD_HEIGHT 128
 # define CHUNK_WIDTH 16
 # define CHUNK_HEIGHT WORLD_HEIGHT
@@ -87,6 +87,8 @@ double vec3d_angle(t_vec3d *v1, t_vec3d *v2);
 double vec3d_dot(t_vec3d *v1, t_vec3d *v2);
 double vec3d_size(t_vec3d *vector);
 
+float perlin_noise(int32_t x, int32_t y, float gain, int32_t octaves, int32_t hgrid);
+
 struct s_simplex_noise_octave
 {
 	short perm[512];
@@ -148,6 +150,9 @@ struct s_world
 	t_chunk_list *chunks;
 	t_entity **entities;
 	t_simplex_noise noise;
+	float biome_noise_gain;
+	int32_t biome_noise_octaves;
+	int32_t biome_noise_hgrid;
 };
 
 struct s_block

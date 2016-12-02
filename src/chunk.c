@@ -56,7 +56,7 @@ void chunk_free(t_chunk *chunk)
 void chunk_redraw(t_chunk *chunk)
 {
 	glNewList(chunk->glList, GL_COMPILE);
-	glBegin(GL_QUADS);
+	glBegin(GL_TRIANGLES);
 	for (uint32_t x = 0; x < CHUNK_WIDTH; ++x)
 	{
 		for (uint32_t y = 0; y < CHUNK_HEIGHT; ++y)

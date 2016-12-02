@@ -23,11 +23,11 @@ static bool _block_calculate_visiblity_other_chunk(t_block *block, int32_t addX,
 {
 	t_chunk *tmp_chunk = world_chunk_get(block->chunk->world, block->chunk->x + addX, block->chunk->z +addZ);
 	if (!tmp_chunk)
-		return (0);
+		return (1);
 	else
 	{
 		t_block *tmp_block = chunk_block_get(tmp_chunk, newBlockX, block->y, newBlockZ);
-		return (!tmp_block || !tmp_block->transparent);
+		return (!tmp_block || tmp_block->transparent);
 	}
 }
 
@@ -39,42 +39,42 @@ void block_calculate_visibility(t_block *block)
 	else
 	{
 		tmp_block = chunk_block_get(block->chunk, block->x - 1, block->y, block->z);
-		block->visibleFace[2] = !tmp_block || !tmp_block->transparent;
+		block->visibleFace[2] = !tmp_block || tmp_block->transparent;
 	}
 	if (block->x == block->chunk->x + CHUNK_WIDTH - 1)
 		block->visibleFace[3] = _block_calculate_visiblity_other_chunk(block, CHUNK_WIDTH, 0, 0, block->z);
 	else
 	{
 		tmp_block = chunk_block_get(block->chunk, block->x + 1, block->y, block->z);
-		block->visibleFace[3] = !tmp_block || !tmp_block->transparent;
+		block->visibleFace[3] = !tmp_block || tmp_block->transparent;
 	}
 	if (block->y == 0)
 		block->visibleFace[4] = 1;
 	else
 	{
 		tmp_block = chunk_block_get(block->chunk, block->x, block->y + 1, block->z);
-		block->visibleFace[4] = !tmp_block || !tmp_block->transparent;
+		block->visibleFace[4] = !tmp_block || tmp_block->transparent;
 	}
 	if (block->y == CHUNK_HEIGHT - 1)
 		block->visibleFace[5] = 1;
 	else
 	{
 		tmp_block = chunk_block_get(block->chunk, block->x, block->y - 1, block->z);
-		block->visibleFace[5] = !tmp_block || !tmp_block->transparent;
+		block->visibleFace[5] = !tmp_block || tmp_block->transparent;
 	}
 	if (block->z == 0)
 		block->visibleFace[0] = _block_calculate_visiblity_other_chunk(block, 0, -CHUNK_WIDTH, block->x, 15);
 	else
 	{
 		tmp_block = chunk_block_get(block->chunk, block->x, block->y, block->z - 1);
-		block->visibleFace[0] = !tmp_block || !tmp_block->transparent;
+		block->visibleFace[0] = !tmp_block || tmp_block->transparent;
 	}
 	if (block->z == block->chunk->z + CHUNK_WIDTH - 1)
 		block->visibleFace[1] = _block_calculate_visiblity_other_chunk(block, 0, CHUNK_WIDTH, block->x, 0);
 	else
 	{
 		tmp_block = chunk_block_get(block->chunk, block->x, block->y, block->z + 1);
-		block->visibleFace[1] = !tmp_block || !tmp_block->transparent;
+		block->visibleFace[1] = !tmp_block || tmp_block->transparent;
 	}
 }
 

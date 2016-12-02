@@ -19,9 +19,10 @@ int main()
 	glClearColor(0.48, 0.65, 0.99, 0);
 	world_init(&env.world);
 	double start = glfwGetTime();
-	for (int8_t x = -16; x < 16; ++x)
+	#define SQ 8
+	for (int8_t x = -SQ; x < SQ; ++x)
 	{
-		for (int8_t z = -16; z < 16; ++z)
+		for (int8_t z = -SQ; z < SQ; ++z)
 		{
 			t_chunk *chunk = malloc(sizeof(*chunk));
 			if (!chunk)

@@ -34,6 +34,7 @@ typedef struct s_entity t_entity;
 typedef struct s_world t_world;
 typedef struct s_chunk t_chunk;
 typedef struct s_block t_block;
+typedef struct s_vec3d t_vec3d;
 typedef struct s_env t_env;
 typedef char bool;
 
@@ -67,6 +68,7 @@ void block_init(t_block *block, t_chunk *chunk, int32_t x, int32_t y, int32_t z,
 void block_free(t_block *block);
 void block_draw(t_block *block);
 void block_calculate_visibility(t_block *block);
+void block_calculate_light(t_block *block);
 
 void player_move(t_player *player);
 void player_orientate(t_player *player);
@@ -74,6 +76,15 @@ void player_orientate(t_player *player);
 void simplex_noise_init(t_simplex_noise *noise, uint32_t largest_feature, double persistance, int32_t seed);
 double simplex_noise_get2(t_simplex_noise *noise, int32_t x, int32_t y);
 double simplex_noise_get3(t_simplex_noise *noise, int32_t x, int32_t y, int32_t z);
+
+void vec3d_rotate_x(t_vec3d *vector, double angle);
+void vec3d_rotate_y(t_vec3d *vector, double angle);
+void vec3d_rotate_z(t_vec3d *vector, double angle);
+void vec3d_rotate(t_vec3d *vector, t_vec3d *rotation);
+void vec3d_unrotate(t_vec3d *vector, t_vec3d *rotation);
+double vec3d_angle(t_vec3d *v1, t_vec3d *v2);
+double vec3d_dot(t_vec3d *v1, t_vec3d *v2);
+double vec3d_size(t_vec3d *vector);
 
 struct s_simplex_noise_octave
 {
@@ -148,17 +159,18 @@ struct s_block
 	int32_t z;
 	int8_t cx;
 	int8_t cz;
+	uint8_t lights[6][4];
 	bool transparent;
 };
 
 struct s_chunk
 {
 	t_world *world;
-	t_block blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_WIDTH];
 	t_chunk *chunkXLess;
 	t_chunk *chunkXMore;
 	t_chunk *chunkZLess;
 	t_chunk *chunkZMore;
+	t_block blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_WIDTH];
 	int32_t x;
 	int32_t z;
 	GLuint glList;
@@ -168,6 +180,13 @@ struct s_chunk_list
 {
 	t_chunk *chunk;
 	t_chunk_list *next;
+};
+
+struct s_vec3d
+{
+	double x;
+	double y;
+	double z;
 };
 
 struct s_env

@@ -15,6 +15,7 @@ SRCS_NAME = main.c \
 	chunk.c \
 	block.c \
 	simplex_noise.c \
+	t_vec3d.c \
 
 SRCS = $(addprefix $(SRCS_PATH), $(SRCS_NAME))
 

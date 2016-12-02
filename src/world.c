@@ -57,7 +57,15 @@ void world_render(t_world *world)
 	t_chunk_list *lst = world->chunks;
 	while (lst)
 	{
-		chunk_render(lst->chunk);
+		/*t_vec3d player_vec = {0, 0, 1};
+		vec3d_rotate_x(&player_vec, TO_RADIANS(world->player.rx));
+		vec3d_rotate_y(&player_vec, TO_RADIANS(135 - world->player.ry));
+		vec3d_rotate_z(&player_vec, TO_RADIANS(world->player.rz));
+		t_vec3d player_2c_vec = {lst->chunk->x - world->player.x * 2, player_vec.y, lst->chunk->z - world->player.z * 2};
+		if (vec3d_angle(&player_vec, &player_2c_vec) < TO_RADIANS(90))
+		{*/
+			chunk_render(lst->chunk);
+		//}
 		lst = lst->next;
 	}
 	/*glTranslated(world->player.x, world->player.y, world->player.z);

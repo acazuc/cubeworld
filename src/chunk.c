@@ -39,6 +39,7 @@ void chunk_init(t_chunk *chunk, t_world *world, int32_t x, int32_t z)
 			for (uint32_t blockZ = 0; blockZ < CHUNK_WIDTH; ++blockZ)
 			{
 				block_calculate_visibility(&chunk->blocks[blockX][blockY][blockZ]);
+				block_calculate_light(&chunk->blocks[blockX][blockY][blockZ]);
 			}
 		}
 	}

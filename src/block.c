@@ -31,40 +31,76 @@ static bool _block_calculate_is_transparent_same_chunk(t_block *block, int32_t a
 	return (!tmp_block || tmp_block->transparent);
 }
 
-static bool _block_calculate_is_transparent_other_chunk(t_block *block, t_chunk *chunk, int32_t newBlockX, int32_t newBlockZ)
+static bool _block_calculate_is_transparent_other_chunk(t_chunk *chunk, int32_t newBlockX, int32_t newBlockY, int32_t newBlockZ)
 {
 	if (!chunk)
 		return (1);
-	t_block *tmp_block = chunk_block_get(chunk, newBlockX, block->y, newBlockZ);
+	t_block *tmp_block = chunk_block_get(chunk, newBlockX, newBlockY, newBlockZ);
 	return (!tmp_block || tmp_block->transparent);
+}
+
+static bool _block_calculate_is_transparent(t_block *block, int32_t addX, int32_t addY, int32_t addZ)
+{
+	if (block->y + addY < 0 || block->y + addY >= CHUNK_HEIGHT - 1)
+		return (1);
+	bool different = (addX < 0 && block->cx < addX) || (addX > 0 && block->cx + addX >= CHUNK_WIDTH - 1) || (addZ < 0 && block->cz < addZ) || (addZ > 0 && block->cz == CHUNK_WIDTH - 1);
+	if (different)
+	{
+		int32_t newX = block->cx + addX;
+		int32_t newY = block->y + addY;
+		int32_t newZ = block->cz + addZ;
+		t_chunk *new_chunk = block->chunk;
+		while (newX < 0)
+		{
+			newX += CHUNK_WIDTH;
+			if (!(new_chunk = new_chunk->chunkXLess))
+				return (1);
+		}
+		while (newX >= CHUNK_WIDTH)
+		{
+			newX -= CHUNK_WIDTH;
+			if (!(new_chunk = new_chunk->chunkXMore))
+				return (1);
+		}
+		while (newZ < 0)
+		{
+			newZ += CHUNK_WIDTH;
+			if (!(new_chunk = new_chunk->chunkZLess))
+				return (1);
+		}
+		while (newZ >= CHUNK_WIDTH)
+		{
+			newZ -= CHUNK_WIDTH;
+			if (!(new_chunk = new_chunk->chunkZMore))
+				return (1);
+		}
+		return (_block_calculate_is_transparent_other_chunk(new_chunk, newX, newY, newZ));
+	}
+	return (_block_calculate_is_transparent_same_chunk(block, addX, addY, addZ));
 }
 
 void block_calculate_visibility(t_block *block)
 {
+	block->visibleFace[0] = _block_calculate_is_transparent(block, 0, 0, -1);
+	block->visibleFace[1] = _block_calculate_is_transparent(block, 0, 0, 1);
+	block->visibleFace[4] = _block_calculate_is_transparent(block, 0, -1, 0);
+	block->visibleFace[5] = _block_calculate_is_transparent(block, 0, 1, 0);
 	if (block->x == 0)
-		block->visibleFace[2] = _block_calculate_is_transparent_other_chunk(block, block->chunk->chunkXLess, 15, block->z);
+		block->visibleFace[2] = _block_calculate_is_transparent_other_chunk(block->chunk->chunkXLess, CHUNK_WIDTH - 1, block->y, block->z);
 	else
 		block->visibleFace[2] = _block_calculate_is_transparent_same_chunk(block, -1, 0, 0);
 	if (block->cx == CHUNK_WIDTH - 1)
-		block->visibleFace[3] = _block_calculate_is_transparent_other_chunk(block, block->chunk->chunkXMore, 0, block->z);
+		block->visibleFace[3] = _block_calculate_is_transparent_other_chunk(block->chunk->chunkXMore, 0, block->y, block->z);
 	else
 		block->visibleFace[3] = _block_calculate_is_transparent_same_chunk(block, 1, 0, 0);
-	if (block->y == 0)
-		block->visibleFace[4] = 1;
-	else
-		block->visibleFace[4] = _block_calculate_is_transparent_same_chunk(block, 0, -1, 0);
-	if (block->y == CHUNK_HEIGHT - 1)
-		block->visibleFace[5] = 1;
-	else
-		block->visibleFace[5] = _block_calculate_is_transparent_same_chunk(block, 0, 1, 0);
-	if (block->z == 0)
-		block->visibleFace[0] = _block_calculate_is_transparent_other_chunk(block, block->chunk->chunkZLess, block->x, 15);
+	/*if (block->z == 0)
+		block->visibleFace[0] = _block_calculate_is_transparent_other_chunk(block->chunk->chunkZLess, block->x, block->y, CHUNK_WIDTH - 1);
 	else
 		block->visibleFace[0] = _block_calculate_is_transparent_same_chunk(block, 0, 0, -1);
 	if (block->cz == CHUNK_WIDTH - 1)
-		block->visibleFace[1] = _block_calculate_is_transparent_other_chunk(block, block->chunk->chunkZMore, block->x, 0);
+		block->visibleFace[1] = _block_calculate_is_transparent_other_chunk(block->chunk->chunkZMore, block->x, block->y, 0);
 	else
-		block->visibleFace[1] = _block_calculate_is_transparent_same_chunk(block, 0, 0, 1);
+		block->visibleFace[1] = _block_calculate_is_transparent_same_chunk(block, 0, 0, 1);*/
 }
 
 void _block_calculate_ambient_occlusion_light(t_block *block)
@@ -278,7 +314,35 @@ void _block_calculate_ambient_occlusion_light(t_block *block)
 	{
 		if (block->y < CHUNK_HEIGHT - 1)
 		{
-			if (block->cx > 0)
+			if (!_block_calculate_is_transparent(block, -1, 1, 1))
+				block->lights[5][0] -= LESS;
+			if (!_block_calculate_is_transparent(block, -1, 1, 0))
+			{
+				block->lights[5][0] -= LESS;
+				block->lights[5][1] -= LESS;
+			}
+			if (!_block_calculate_is_transparent(block, -1, 1, -1))
+				block->lights[5][1] -= LESS;
+			if (!_block_calculate_is_transparent(block, 1, 1, -1))
+				block->lights[5][2] -= LESS;
+			if (!_block_calculate_is_transparent(block, 1, 1, 0))
+			{
+				block->lights[5][2] -= LESS;
+				block->lights[5][3] -= LESS;
+			}
+			if (!_block_calculate_is_transparent(block, 1, 1, 1))
+				block->lights[5][3] -= LESS;
+			if (!_block_calculate_is_transparent(block, 0, 1, -1))
+			{
+				block->lights[5][1] -= LESS;
+				block->lights[5][2] -= LESS;
+			}
+			if (!_block_calculate_is_transparent(block, 0, 1, 1))
+			{
+				block->lights[5][3] -= LESS;
+				block->lights[5][0] -= LESS;
+			}
+			/*if (block->cx > 0)
 			{
 				if (block->cz < CHUNK_WIDTH - 1 && !_block_calculate_is_transparent_same_chunk(block, -1, 1, 1))
 					block->lights[5][0] -= LESS;
@@ -311,7 +375,7 @@ void _block_calculate_ambient_occlusion_light(t_block *block)
 			{
 				block->lights[5][3] -= LESS;
 				block->lights[5][0] -= LESS;
-			}
+			}*/
 		}
 	}
 }

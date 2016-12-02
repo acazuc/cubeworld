@@ -63,6 +63,7 @@ void chunk_free(t_chunk *chunk);
 void chunk_redraw(t_chunk *chunk);
 void chunk_render(t_chunk *chunk);
 t_block *chunk_block_get(t_chunk *chunk, int32_t x, int32_t y, int32_t z);
+void chunk_rebuild(t_chunk *chunk);
 
 void block_init(t_block *block, t_chunk *chunk, int32_t x, int32_t y, int32_t z, uint8_t type);
 void block_free(t_block *block);

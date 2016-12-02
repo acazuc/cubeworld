@@ -6,10 +6,14 @@ void chunk_init(t_chunk *chunk, t_world *world, int32_t x, int32_t z)
 	chunk->world = world;
 	chunk->x = x;
 	chunk->z = z;
-	chunk->chunkXLess = world_chunk_get(world, x - CHUNK_WIDTH, z);
-	chunk->chunkXMore = world_chunk_get(world, x + CHUNK_WIDTH, z);
-	chunk->chunkZLess = world_chunk_get(world, x, z - CHUNK_WIDTH);
-	chunk->chunkZMore = world_chunk_get(world, x, z + CHUNK_WIDTH);
+	if ((chunk->chunkXLess = world_chunk_get(world, x - CHUNK_WIDTH, z)))
+		chunk_rebuild(chunk->chunkXLess);
+	if ((chunk->chunkXMore = world_chunk_get(world, x + CHUNK_WIDTH, z)))
+		chunk_rebuild(chunk->chunkXMore);
+	if ((chunk->chunkZLess = world_chunk_get(world, x, z - CHUNK_WIDTH)))
+		chunk_rebuild(chunk->chunkZLess);
+	if ((chunk->chunkZMore = world_chunk_get(world, x, z + CHUNK_WIDTH)))
+		chunk_rebuild(chunk->chunkZMore);
 	if (chunk->chunkXLess)
 		chunk->chunkXLess->chunkXMore = chunk;
 	if (chunk->chunkXMore)
@@ -32,6 +36,14 @@ void chunk_init(t_chunk *chunk, t_world *world, int32_t x, int32_t z)
 			}
 		}
 	}
+	chunk_rebuild(chunk);
+	if (!(chunk->glList = glGenLists(1)))
+		ERROR("glGenList failed");
+	chunk_redraw(chunk);
+}
+
+void chunk_rebuild(t_chunk *chunk)
+{
 	for (uint32_t blockX = 0; blockX < CHUNK_WIDTH; ++blockX)
 	{
 		for (uint32_t blockY = 0; blockY < CHUNK_HEIGHT; ++blockY)
@@ -43,9 +55,6 @@ void chunk_init(t_chunk *chunk, t_world *world, int32_t x, int32_t z)
 			}
 		}
 	}
-	if (!(chunk->glList = glGenLists(1)))
-		ERROR("glGenList failed");
-	chunk_redraw(chunk);
 }
 
 void chunk_free(t_chunk *chunk)

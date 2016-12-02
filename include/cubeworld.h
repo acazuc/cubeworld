@@ -138,10 +138,23 @@ struct s_world
 	t_simplex_noise noise;
 };
 
+struct s_block
+{
+	t_chunk *chunk;
+	uint8_t visibleFace[6];
+	uint8_t type;
+	int32_t x;
+	int32_t y;
+	int32_t z;
+	int8_t cx;
+	int8_t cz;
+	bool transparent;
+};
+
 struct s_chunk
 {
 	t_world *world;
-	t_block *blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_WIDTH];
+	t_block blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_WIDTH];
 	t_chunk *chunkXLess;
 	t_chunk *chunkXMore;
 	t_chunk *chunkZLess;
@@ -155,19 +168,6 @@ struct s_chunk_list
 {
 	t_chunk *chunk;
 	t_chunk_list *next;
-};
-
-struct s_block
-{
-	t_chunk *chunk;
-	uint8_t visibleFace[6];
-	uint8_t type;
-	int32_t x;
-	int32_t y;
-	int32_t z;
-	int8_t cx;
-	int8_t cz;
-	bool transparent;
 };
 
 struct s_env

@@ -20,7 +20,7 @@ int main()
 	world_init(&env.world);
 	double start = glfwGetTime();
 	env.world.player.y = 50;
-	#define SQ 1
+	#define SQ 8
 	for (int8_t x = -SQ; x < SQ; ++x)
 	{
 		for (int8_t z = -SQ; z < SQ; ++z)

@@ -19,10 +19,10 @@ static short p_supply[] = {151,160,137,91,90,15,
 			49,192,214, 31,181,199,106,157,184, 84,204,176,115,121,50,45,127, 4,150,254,
 			138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180};
 
-static double F2 = 0.5 * (sqrt(3.0) - 1.0);
-static double G2 = (3.0 - sqrt(3.0)) / 6.0;
-static double F3 = 1.0 / 3.0;
-static double G3 = 1.0 / 6.0;
+static double F2 = 0.36602540378443864676;//0.5 * (sqrt(3.0) - 1.0);
+static double G2 = 0.21132486540518711775;//(3.0 - sqrt(3.0)) / 6.0;
+static double F3 = 0.33333333333333333333;//1.0 / 3.0;
+static double G3 = 0.16666666666666666667;//1.0 / 6.0;
 
 void _simplex_noise_octave_init(t_simplex_noise_octave *octave, uint32_t seed);
 double _simplex_noise_octave_get2(t_simplex_noise_octave *octave, double xin, double yin);

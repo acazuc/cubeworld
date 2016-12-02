@@ -23,6 +23,10 @@
 # define WORLD_HEIGHT 128
 # define CHUNK_WIDTH 16
 # define CHUNK_HEIGHT WORLD_HEIGHT
+# define CHUNK_BORDER_X_LESS 1
+# define CHUNK_BORDER_X_MORE 2
+# define CHUNK_BORDER_Z_LESS 4
+# define CHUNK_BORDER_Z_MORE 8
 
 typedef struct s_simplex_noise_octave t_simplex_noise_octave;
 typedef struct s_simplex_noise_grad t_simplex_noise_grad;
@@ -64,6 +68,7 @@ void chunk_redraw(t_chunk *chunk);
 void chunk_render(t_chunk *chunk);
 t_block *chunk_block_get(t_chunk *chunk, int32_t x, int32_t y, int32_t z);
 void chunk_rebuild(t_chunk *chunk);
+void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders);
 
 void block_init(t_block *block, t_chunk *chunk, int32_t x, int32_t y, int32_t z, uint8_t type);
 void block_free(t_block *block);

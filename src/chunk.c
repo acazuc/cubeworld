@@ -37,13 +37,13 @@ void chunk_init(t_chunk *chunk, t_world *world, int32_t x, int32_t z)
 		ERROR("glGenList failed");
 	chunk_rebuild(chunk);
 	if (chunk->chunkXLess)
-		chunk_rebuild(chunk->chunkXLess);
+		chunk_rebuild_borders(chunk->chunkXLess, CHUNK_BORDER_X_MORE);
 	if (chunk->chunkXMore)
-		chunk_rebuild(chunk->chunkXMore);
+		chunk_rebuild_borders(chunk->chunkXMore, CHUNK_BORDER_X_LESS);
 	if (chunk->chunkZLess)
-		chunk_rebuild(chunk->chunkZLess);
+		chunk_rebuild_borders(chunk->chunkZLess, CHUNK_BORDER_Z_MORE);
 	if (chunk->chunkZMore)
-		chunk_rebuild(chunk->chunkZMore);
+		chunk_rebuild_borders(chunk->chunkZMore, CHUNK_BORDER_Z_LESS);
 }
 
 void chunk_rebuild(t_chunk *chunk)
@@ -56,6 +56,55 @@ void chunk_rebuild(t_chunk *chunk)
 			{
 				block_calculate_visibility(&chunk->blocks[blockX][blockY][blockZ]);
 				block_calculate_light(&chunk->blocks[blockX][blockY][blockZ]);
+			}
+		}
+	}
+	chunk_redraw(chunk);
+}
+
+void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders)
+{
+	if (borders & CHUNK_BORDER_X_LESS)
+	{
+		for (uint32_t blockY = 0; blockY < CHUNK_HEIGHT; ++blockY)
+		{
+			for (uint32_t blockZ = 0; blockZ < CHUNK_WIDTH; ++blockZ)
+			{
+				block_calculate_visibility(&chunk->blocks[0][blockY][blockZ]);
+				block_calculate_light(&chunk->blocks[0][blockY][blockZ]);
+			}
+		}
+	}
+	if (borders & CHUNK_BORDER_X_MORE)
+	{
+		for (uint32_t blockY = 0; blockY < CHUNK_HEIGHT; ++blockY)
+		{
+			for (uint32_t blockZ = 0; blockZ < CHUNK_WIDTH; ++blockZ)
+			{
+				block_calculate_visibility(&chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ]);
+				block_calculate_light(&chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ]);
+			}
+		}
+	}
+	if (borders & CHUNK_BORDER_Z_LESS)
+	{
+		for (uint32_t blockX = 0; blockX < CHUNK_WIDTH; ++blockX)
+		{
+			for (uint32_t blockY = 0; blockY < CHUNK_HEIGHT; ++blockY)
+			{
+				block_calculate_visibility(&chunk->blocks[blockX][blockY][0]);
+				block_calculate_light(&chunk->blocks[blockX][blockY][0]);
+			}
+		}
+	}
+	if (borders & CHUNK_BORDER_Z_MORE)
+	{
+		for (uint32_t blockX = 0; blockX < CHUNK_WIDTH; ++blockX)
+		{
+			for (uint32_t blockY = 0; blockY < CHUNK_HEIGHT; ++blockY)
+			{
+				block_calculate_visibility(&chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1]);
+				block_calculate_light(&chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1]);
 			}
 		}
 	}

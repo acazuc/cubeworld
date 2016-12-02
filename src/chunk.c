@@ -6,11 +6,23 @@ void chunk_init(t_chunk *chunk, t_world *world, int32_t x, int32_t z)
 	chunk->world = world;
 	chunk->x = x;
 	chunk->z = z;
+	chunk->chunkXLess = world_chunk_get(world, x - CHUNK_WIDTH, z);
+	chunk->chunkXMore = world_chunk_get(world, x + CHUNK_WIDTH, z);
+	chunk->chunkZLess = world_chunk_get(world, x, z - CHUNK_WIDTH);
+	chunk->chunkZMore = world_chunk_get(world, x, z + CHUNK_WIDTH);
+	if (chunk->chunkXLess)
+		chunk->chunkXLess->chunkXMore = chunk;
+	if (chunk->chunkXMore)
+		chunk->chunkXMore->chunkXLess = chunk;
+	if (chunk->chunkZLess)
+		chunk->chunkZLess->chunkZMore = chunk;
+	if (chunk->chunkZMore)
+		chunk->chunkZMore->chunkZLess = chunk;
 	for (uint32_t blockX = 0; blockX < CHUNK_WIDTH; ++blockX)
 	{
 		for (uint32_t blockZ = 0; blockZ < CHUNK_WIDTH; ++blockZ)
 		{
-			uint32_t noiseIndex = (simplex_noise_get2(&world->noise, blockX + x, blockZ + z) + 1) * 10 + 10;
+			uint32_t noiseIndex = (simplex_noise_get2(&world->noise, blockX + x, blockZ + z)) * CHUNK_HEIGHT / 2  + CHUNK_HEIGHT / 2;
 			for (uint32_t blockY = 0; blockY < CHUNK_HEIGHT; ++blockY)
 			{
 				uint8_t blockType = 0;
@@ -58,7 +70,7 @@ void chunk_free(t_chunk *chunk)
 void chunk_redraw(t_chunk *chunk)
 {
 	glNewList(chunk->glList, GL_COMPILE);
-glBegin(GL_QUADS);
+	glBegin(GL_QUADS);
 	for (uint32_t x = 0; x < CHUNK_WIDTH; ++x)
 	{
 		for (uint32_t y = 0; y < CHUNK_HEIGHT; ++y)

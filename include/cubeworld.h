@@ -20,7 +20,7 @@
 
 # define WINDOW_DEFAULT_WIDTH 1280
 # define WINDOW_DEFAULT_HEIGHT 720
-# define WORLD_HEIGHT 40
+# define WORLD_HEIGHT 20
 # define CHUNK_WIDTH 16
 # define CHUNK_HEIGHT WORLD_HEIGHT
 
@@ -142,6 +142,10 @@ struct s_chunk
 {
 	t_world *world;
 	t_block *blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_WIDTH];
+	t_chunk *chunkXLess;
+	t_chunk *chunkXMore;
+	t_chunk *chunkZLess;
+	t_chunk *chunkZMore;
 	int32_t x;
 	int32_t z;
 	GLuint glList;

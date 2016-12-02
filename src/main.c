@@ -18,9 +18,10 @@ int main()
 	glClearDepth(1);
 	glClearColor(0.48, 0.65, 0.99, 0);
 	world_init(&env.world);
-	for (int8_t x = -8; x < 8; ++x)
+	double start = glfwGetTime();
+	for (int8_t x = -32; x < 32; ++x)
 	{
-		for (int8_t z = -8; z < 8; ++z)
+		for (int8_t z = -32; z < 32; ++z)
 		{
 			t_chunk *chunk = malloc(sizeof(*chunk));
 			if (!chunk)
@@ -28,7 +29,10 @@ int main()
 			chunk_init(chunk, &env.world, x * 16, z * 16);
 			world_chunk_add(&env.world, chunk);
 		}
+		printf("%d\n", x);
 	}
+	double end = glfwGetTime();
+	printf("%llu\n", (long long unsigned)((end - start) * 1000000000));
 	while (!glfwWindowShouldClose(env.window.glfw_window))
 	{
 		windowResizeListener(env.window.glfw_window, env.window.width, env.window.height);

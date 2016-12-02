@@ -108,7 +108,136 @@ void block_calculate_light(t_block *block)
 	{
 		if (block->z < CHUNK_WIDTH - 1)
 		{
-			//
+			if (block->y < CHUNK_HEIGHT - 1 && block->cx > 0 && !_block_calculate_is_transparent(block, -1, 1, 1))
+				block->lights[1][1] -= LESS;
+			if (block->y < CHUNK_HEIGHT - 1 && !_block_calculate_is_transparent(block, 0, 1, 1))
+			{
+				block->lights[1][1] -= LESS;
+				block->lights[1][2] -= LESS;
+			}
+			if (block->y < CHUNK_HEIGHT - 1 && block->cx < CHUNK_WIDTH - 1 && !_block_calculate_is_transparent(block, 1, 1, 1))
+				block->lights[1][2] -= LESS;
+			if (block->cx < CHUNK_WIDTH - 1 && !_block_calculate_is_transparent(block, 1, 0, 1))
+			{
+				block->lights[1][2] -= LESS;
+				block->lights[1][3] -= LESS;
+			}
+			if (block->cx < CHUNK_WIDTH - 1 && block->y > 0 && !_block_calculate_is_transparent(block, 1, -1, 1))
+				block->lights[1][3] -= LESS;
+			if (block->y > 0 && !_block_calculate_is_transparent(block, 0, -1, 1))
+			{
+				block->lights[1][3] -= LESS;
+				block->lights[1][0] -= LESS;
+			}
+			if (block->y > 0 && block->cx > 0 && !_block_calculate_is_transparent(block, -1, -1, 1))
+				block->lights[1][0] -= LESS;
+			if (block->cx > 0 && !_block_calculate_is_transparent(block, -1, 0, 1))
+			{
+				block->lights[1][0] -= LESS;
+				block->lights[1][1] -= LESS;
+			}
+		}
+	}
+	if (block->visibleFace[2])
+	{
+		if (block->x > 0)
+		{
+			if (block->y < CHUNK_HEIGHT - 1 && block->cz > 0 && !_block_calculate_is_transparent(block, -1, 1, -1))
+				block->lights[2][1] -= LESS;
+			if (block->y < CHUNK_HEIGHT - 1 && !_block_calculate_is_transparent(block, -1, 1, 0))
+			{
+				block->lights[2][1] -= LESS;
+				block->lights[2][2] -= LESS;
+			}
+			if (block->y < CHUNK_HEIGHT - 1 && block->cz < CHUNK_WIDTH - 1 && !_block_calculate_is_transparent(block, -1, 1, 1))
+				block->lights[2][2] -= LESS;
+			if (block->cz < CHUNK_WIDTH - 1 && !_block_calculate_is_transparent(block, -1, 0, 1))
+			{
+				block->lights[2][2] -= LESS;
+				block->lights[2][3] -= LESS;
+			}
+			if (block->cz < CHUNK_WIDTH - 1 && block->y > 0 && !_block_calculate_is_transparent(block, -1, -1, 1))
+				block->lights[2][3] -= LESS;
+			if (block->y > 0 && !_block_calculate_is_transparent(block, -1, -1, 1))
+			{
+				block->lights[2][3] -= LESS;
+				block->lights[2][0] -= LESS;
+			}
+			if (block->y > 0 && block->cz > 0 && !_block_calculate_is_transparent(block, -1, -1, -1))
+				block->lights[2][0] -= LESS;
+			if (block->cz > 0 && !_block_calculate_is_transparent(block, -1, 0, -1))
+			{
+				block->lights[2][0] -= LESS;
+				block->lights[2][1] -= LESS;
+			}
+		}
+	}
+	if (block->visibleFace[3])
+	{
+		if (block->x < CHUNK_WIDTH - 1)
+		{
+			if (block->y < CHUNK_HEIGHT - 1 && block->cz > 0 && !_block_calculate_is_transparent(block, 1, 1, -1))
+				block->lights[3][1] -= LESS;
+			if (block->y < CHUNK_HEIGHT - 1 && !_block_calculate_is_transparent(block, 1, 1, 0))
+			{
+				block->lights[3][1] -= LESS;
+				block->lights[3][2] -= LESS;
+			}
+			if (block->y < CHUNK_HEIGHT - 1 && block->cz < CHUNK_WIDTH - 1 && !_block_calculate_is_transparent(block, 1, 1, 1))
+				block->lights[3][2] -= LESS;
+			if (block->cz < CHUNK_WIDTH - 1 && !_block_calculate_is_transparent(block, 1, 0, 1))
+			{
+				block->lights[3][2] -= LESS;
+				block->lights[3][3] -= LESS;
+			}
+			if (block->cz < CHUNK_WIDTH - 1 && block->y > 0 && !_block_calculate_is_transparent(block, 1, -1, 1))
+				block->lights[3][3] -= LESS;
+			if (block->y > 0 && !_block_calculate_is_transparent(block, 1, -1, 1))
+			{
+				block->lights[3][3] -= LESS;
+				block->lights[3][0] -= LESS;
+			}
+			if (block->y > 0 && block->cz > 0 && !_block_calculate_is_transparent(block, 1, -1, -1))
+				block->lights[3][0] -= LESS;
+			if (block->cz > 0 && !_block_calculate_is_transparent(block, 1, 0, -1))
+			{
+				block->lights[3][0] -= LESS;
+				block->lights[3][1] -= LESS;
+			}
+		}
+	}
+	if (block->visibleFace[4])
+	{
+		if (block->y > 0)
+		{
+			if (block->cz > 0 && block->cx > 0 && !_block_calculate_is_transparent(block, -1, -1, -1))
+				block->lights[4][1] -= LESS;
+			if (block->cz > 0 && !_block_calculate_is_transparent(block, 0, -1, -1))
+			{
+				block->lights[4][1] -= LESS;
+				block->lights[4][2] -= LESS;
+			}
+			if (block->cz > 0 && block->cx < CHUNK_WIDTH - 1 && !_block_calculate_is_transparent(block, 1, -1, -1))
+				block->lights[4][2] -= LESS;
+			if (block->cx < CHUNK_WIDTH - 1 && !_block_calculate_is_transparent(block, 1, -1, 0))
+			{
+				block->lights[4][2] -= LESS;
+				block->lights[4][3] -= LESS;
+			}
+			if (block->cx < CHUNK_WIDTH - 1 && block->cz < CHUNK_WIDTH - 1 && !_block_calculate_is_transparent(block, 1, -1, 1))
+				block->lights[4][3] -= LESS;
+			if (block->cz < CHUNK_WIDTH - 1 && !_block_calculate_is_transparent(block, 0, -1, 1))
+			{
+				block->lights[4][3] -= LESS;
+				block->lights[4][0] -= LESS;
+			}
+			if (block->cz < CHUNK_WIDTH - 1 && block->cx > 0 && !_block_calculate_is_transparent(block, -1, -1, 1))
+				block->lights[4][0] -= LESS;
+			if (block->cx > 0 && !_block_calculate_is_transparent(block, -1, -1, 0))
+			{
+				block->lights[4][0] -= LESS;
+				block->lights[4][1] -= LESS;
+			}
 		}
 	}
 	if (block->visibleFace[5])

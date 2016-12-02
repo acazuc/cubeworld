@@ -9,9 +9,12 @@ void block_init(t_block *block, t_chunk *chunk, int32_t x, int32_t y, int32_t z,
 	block->x = x;
 	block->y = y;
 	block->z = z;
+	block->cx = x - chunk->x;
+	block->cz = z - chunk->z;
 	block->type = type;
 	for (uint8_t i = 0; i < 6; ++i)
 		block->visibleFace[i] = 1;
+	block->transparent = type == 0;
 }
 
 void block_free(t_block *block)
@@ -38,49 +41,51 @@ void block_calculate_visibility(t_block *block)
 		block->visibleFace[2] = _block_calculate_visiblity_other_chunk(block, -CHUNK_WIDTH, 0, 15, block->z);
 	else
 	{
-		tmp_block = chunk_block_get(block->chunk, block->x - 1, block->y, block->z);
+		tmp_block = chunk_block_get(block->chunk, block->cx - 1, block->y, block->cz);
 		block->visibleFace[2] = !tmp_block || tmp_block->transparent;
 	}
 	if (block->x == block->chunk->x + CHUNK_WIDTH - 1)
 		block->visibleFace[3] = _block_calculate_visiblity_other_chunk(block, CHUNK_WIDTH, 0, 0, block->z);
 	else
 	{
-		tmp_block = chunk_block_get(block->chunk, block->x + 1, block->y, block->z);
+		tmp_block = chunk_block_get(block->chunk, block->cx + 1, block->y, block->cz);
 		block->visibleFace[3] = !tmp_block || tmp_block->transparent;
 	}
 	if (block->y == 0)
 		block->visibleFace[4] = 1;
 	else
 	{
-		tmp_block = chunk_block_get(block->chunk, block->x, block->y + 1, block->z);
+		tmp_block = chunk_block_get(block->chunk, block->cx, block->y - 1, block->cz);
 		block->visibleFace[4] = !tmp_block || tmp_block->transparent;
 	}
 	if (block->y == CHUNK_HEIGHT - 1)
 		block->visibleFace[5] = 1;
 	else
 	{
-		tmp_block = chunk_block_get(block->chunk, block->x, block->y - 1, block->z);
+		tmp_block = chunk_block_get(block->chunk, block->cx, block->y + 1, block->cz);
 		block->visibleFace[5] = !tmp_block || tmp_block->transparent;
 	}
 	if (block->z == 0)
 		block->visibleFace[0] = _block_calculate_visiblity_other_chunk(block, 0, -CHUNK_WIDTH, block->x, 15);
 	else
 	{
-		tmp_block = chunk_block_get(block->chunk, block->x, block->y, block->z - 1);
+		tmp_block = chunk_block_get(block->chunk, block->cx, block->y, block->cz - 1);
 		block->visibleFace[0] = !tmp_block || tmp_block->transparent;
 	}
 	if (block->z == block->chunk->z + CHUNK_WIDTH - 1)
 		block->visibleFace[1] = _block_calculate_visiblity_other_chunk(block, 0, CHUNK_WIDTH, block->x, 0);
 	else
 	{
-		tmp_block = chunk_block_get(block->chunk, block->x, block->y, block->z + 1);
+		tmp_block = chunk_block_get(block->chunk, block->cx, block->y, block->cz + 1);
 		block->visibleFace[1] = !tmp_block || tmp_block->transparent;
 	}
 }
 
 void block_draw(t_block *block)
 {
-	glBegin(GL_QUADS);
+	if (block->transparent)
+		return;
+	//glBegin(GL_QUADS);
 	glColor3f(rand() / (float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX);
 	if (block->visibleFace[0])
 	{
@@ -153,5 +158,5 @@ void block_draw(t_block *block)
 		glTexCoord2f(1, 0);
 		glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 	}
-	glEnd();
+	//glEnd();
 }

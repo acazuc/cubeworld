@@ -64,5 +64,4 @@ void player_move(t_player *player)
 	double diffZ = sin(TO_RADIANS(angle)) * SPEED_FACTOR;
 	player->x += diffX;
 	player->z += diffZ;
-	printf("%lf || %lf\n", player->x, player->z);
 }

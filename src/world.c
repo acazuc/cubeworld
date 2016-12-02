@@ -3,6 +3,7 @@
 void world_init(t_world *world)
 {
 	memset(world, 0, sizeof(*world));
+	simplex_noise_init(&world->noise, 512, .5, 1337);
 }
 
 void world_chunk_add(t_world *world, t_chunk *chunk)
@@ -59,8 +60,8 @@ void world_render(t_world *world)
 		chunk_render(lst->chunk);
 		lst = lst->next;
 	}
-	glTranslated(world->player.x, world->player.y, world->player.z);
+	/*glTranslated(world->player.x, world->player.y, world->player.z);
 	glRotatef(-world->player.ry, 0, 1, 0);
 	glRotatef(-world->player.rx, 1, 0, 0);
-	glRotatef(-world->player.rz, 0, 0, 1);
+	glRotatef(-world->player.rz, 0, 0, 1);*/
 }

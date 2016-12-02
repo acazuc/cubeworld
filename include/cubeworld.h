@@ -20,10 +20,13 @@
 
 # define WINDOW_DEFAULT_WIDTH 1280
 # define WINDOW_DEFAULT_HEIGHT 720
-# define WORLD_HEIGHT 256
+# define WORLD_HEIGHT 40
 # define CHUNK_WIDTH 16
 # define CHUNK_HEIGHT WORLD_HEIGHT
 
+typedef struct s_simplex_noise_octave t_simplex_noise_octave;
+typedef struct s_simplex_noise_grad t_simplex_noise_grad;
+typedef struct s_simplex_noise t_simplex_noise;
 typedef struct s_chunk_list t_chunk_list;
 typedef struct s_window t_window;
 typedef struct s_player t_player;
@@ -68,6 +71,34 @@ void block_calculate_visibility(t_block *block);
 void player_move(t_player *player);
 void player_orientate(t_player *player);
 
+void simplex_noise_init(t_simplex_noise *noise, uint32_t largest_feature, double persistance, int32_t seed);
+double simplex_noise_get2(t_simplex_noise *noise, int32_t x, int32_t y);
+double simplex_noise_get3(t_simplex_noise *noise, int32_t x, int32_t y, int32_t z);
+
+struct s_simplex_noise_octave
+{
+	short perm[512];
+	short permMod12[512];
+};
+
+struct s_simplex_noise_grad
+{
+	double x;
+	double y;
+	double z;
+};
+
+struct s_simplex_noise
+{
+	t_simplex_noise_octave *octaves;
+	double *frequencies;
+	double *amplitudes;
+	double persistence;
+	uint32_t largest_feature;
+	uint32_t octaves_number;
+	int32_t seed;
+};
+
 struct s_window
 {
 	GLFWwindow *glfw_window;
@@ -104,12 +135,13 @@ struct s_world
 	t_player player;
 	t_chunk_list *chunks;
 	t_entity **entities;
+	t_simplex_noise noise;
 };
 
 struct s_chunk
 {
 	t_world *world;
-	t_block ****blocks;
+	t_block *blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_WIDTH];
 	int32_t x;
 	int32_t z;
 	GLuint glList;
@@ -129,6 +161,8 @@ struct s_block
 	int32_t x;
 	int32_t y;
 	int32_t z;
+	int8_t cx;
+	int8_t cz;
 	bool transparent;
 };
 

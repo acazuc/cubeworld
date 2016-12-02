@@ -18,11 +18,17 @@ int main()
 	glClearDepth(1);
 	glClearColor(0.48, 0.65, 0.99, 0);
 	world_init(&env.world);
-	t_chunk *chunk = malloc(sizeof(*chunk));
-	if (!chunk)
-		ERROR("malloc failed");
-	chunk_init(chunk, &env.world, 0, 0);
-	world_chunk_add(&env.world, chunk);
+	for (int8_t x = -8; x < 8; ++x)
+	{
+		for (int8_t z = -8; z < 8; ++z)
+		{
+			t_chunk *chunk = malloc(sizeof(*chunk));
+			if (!chunk)
+				ERROR("malloc failed");
+			chunk_init(chunk, &env.world, x * 16, z * 16);
+			world_chunk_add(&env.world, chunk);
+		}
+	}
 	while (!glfwWindowShouldClose(env.window.glfw_window))
 	{
 		windowResizeListener(env.window.glfw_window, env.window.width, env.window.height);
@@ -90,7 +96,6 @@ void windowCursorListener(GLFWwindow *window, double x, double y)
 void windowResizeListener(GLFWwindow *window, int32_t width, int32_t height)
 {
 	(void)window;
-	printf("ok !\n");
 	g_env->window.width = width;
 	g_env->window.height = height;
 	glDepthFunc(GL_LEQUAL);

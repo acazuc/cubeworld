@@ -13,10 +13,11 @@ int main()
 	window_create(&env);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
 	glClearDepth(1);
 	glClearColor(0.48, 0.65, 0.99, 0);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	world_init(&env.world);
 	double start = glfwGetTime();
 	env.world.player.y = 50;
@@ -28,7 +29,7 @@ int main()
 			t_chunk *chunk = malloc(sizeof(*chunk));
 			if (!chunk)
 				ERROR("malloc failed");
-			chunk_init(chunk, &env.world, x * 16, z * 16);
+			chunk_init(chunk, &env.world, x * CHUNK_WIDTH, z * CHUNK_WIDTH);
 			world_chunk_add(&env.world, chunk);
 		}
 		printf("%d\n", x);
@@ -104,9 +105,6 @@ void windowResizeListener(GLFWwindow *window, int32_t width, int32_t height)
 	(void)window;
 	g_env->window.width = width;
 	g_env->window.height = height;
-	glDepthFunc(GL_LEQUAL);
-	glAlphaFunc(GL_GREATER, .5f);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();

@@ -171,7 +171,10 @@ struct s_block
 	int8_t cx;
 	int8_t cz;
 	uint8_t lights[6][4];
-	bool transparent;
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
+	uint8_t alpha;
 };
 
 struct s_chunk

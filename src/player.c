@@ -1,6 +1,6 @@
 #include "cubeworld.h"
 
-#define SPEED_FACTOR 0.24
+#define SPEED_FACTOR 2//0.24
 #define ORIENTATE_FACTOR 0.1
 
 void player_orientate(t_player *player)

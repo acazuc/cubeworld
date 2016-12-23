@@ -21,7 +21,7 @@
 
 # define WINDOW_DEFAULT_WIDTH 1920
 # define WINDOW_DEFAULT_HEIGHT 1000
-# define WORLD_HEIGHT 128
+# define WORLD_HEIGHT 256
 # define CHUNK_WIDTH 16
 # define CHUNK_HEIGHT WORLD_HEIGHT
 # define CHUNK_BORDER_X_LESS 1
@@ -51,6 +51,7 @@ typedef struct s_world t_world;
 typedef struct s_chunk t_chunk;
 typedef struct s_block t_block;
 typedef struct s_vec3d t_vec3d;
+typedef struct s_vec3i t_vec3i;
 typedef struct s_env t_env;
 typedef char bool;
 
@@ -86,9 +87,9 @@ void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders);
 
 void block_init(t_block *block, t_chunk *chunk, int32_t x, int32_t y, int32_t z, uint8_t type);
 void block_free(t_block *block);
-void block_draw(t_block *block);
-void block_calculate_visibility(t_block *block);
-void block_calculate_light(t_block *block);
+void block_draw(t_block *block, t_vec3i *pos);
+void block_calculate_visibility(t_block *block, t_vec3i *pos);
+void block_calculate_light(t_block *block, t_vec3i *pos);
 
 void player_move(t_player *player);
 void player_orientate(t_player *player);
@@ -182,18 +183,35 @@ struct s_world
 struct s_block
 {
 	t_chunk *chunk;
-	int32_t x;
-	int32_t y;
-	int32_t z;
-	int8_t cx;
-	int8_t cz;
-	uint8_t lights[6][4];
+	struct
+	{
+		uint8_t f1p1 : 4;
+		uint8_t f1p2 : 4;
+		uint8_t f1p3 : 4;
+		uint8_t f1p4 : 4;
+		uint8_t f2p1 : 4;
+		uint8_t f2p2 : 4;
+		uint8_t f2p3 : 4;
+		uint8_t f2p4 : 4;
+		uint8_t f3p1 : 4;
+		uint8_t f3p2 : 4;
+		uint8_t f3p3 : 4;
+		uint8_t f3p4 : 4;
+		uint8_t f4p1 : 4;
+		uint8_t f4p2 : 4;
+		uint8_t f4p3 : 4;
+		uint8_t f4p4 : 4;
+		uint8_t f5p1 : 4;
+		uint8_t f5p2 : 4;
+		uint8_t f5p3 : 4;
+		uint8_t f5p4 : 4;
+		uint8_t f6p1 : 4;
+		uint8_t f6p2 : 4;
+		uint8_t f6p3 : 4;
+		uint8_t f6p4 : 4;
+	} lights;
 	uint8_t visibleFace;
 	uint8_t type;
-	uint8_t red;
-	uint8_t green;
-	uint8_t blue;
-	uint8_t alpha;
 };
 
 struct s_block_dev
@@ -214,6 +232,7 @@ struct s_chunk
 	t_chunk *chunkZLess;
 	t_chunk *chunkZMore;
 	t_block *blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_WIDTH];
+	pthread_mutex_t gl_mutex;
 	uint32_t vao_colors_size;
 	uint32_t vao_colors_pos;
 	uint8_t *vao_colors;
@@ -236,6 +255,13 @@ struct s_vec3d
 	double x;
 	double y;
 	double z;
+};
+
+struct s_vec3i
+{
+	int32_t x;
+	int32_t y;
+	int32_t z;
 };
 
 struct s_env

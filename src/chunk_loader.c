@@ -20,7 +20,7 @@ static bool check_chunk(t_world *world, int32_t chunk_x, int32_t chunk_z)
 void *chunk_loader(void *data)
 {
 	t_world *world = (t_world*)data;
-//startLoop:
+startLoop:
 	{
 		float playerX = world->player.x;
 		float playerZ = world->player.z;
@@ -58,43 +58,43 @@ void *chunk_loader(void *data)
 			lst = lst->next;
 		}
 		if (check_chunk(world, playerChunkX, playerChunkZ))
-			return (NULL);
+			goto startLoop;
 		for (int32_t i = 0; i <= LOAD_DISTANCE; ++i)
 		{
 			int32_t chunkX = playerChunkX - i * CHUNK_WIDTH;
 			int32_t chunkZ = playerChunkZ - i * CHUNK_WIDTH;
 			if (check_chunk(world, chunkX, chunkZ))
-				return (NULL);
+				goto startLoop;
 			for (int32_t j = 0; j <= i * 2; ++j)
 			{
 				chunkX += CHUNK_WIDTH;
 				if (check_chunk(world, chunkX, chunkZ))
-					return (NULL);
+					goto startLoop;
 			}
 			for (int32_t j = 0; j <= i * 2; ++j)
 			{
 				chunkZ += CHUNK_WIDTH;
 				if (check_chunk(world, chunkX, chunkZ))
-					return (NULL);
+					goto startLoop;
 			}
 			for (int32_t j = 0; j <= i * 2; ++j)
 			{
 				chunkX -= CHUNK_WIDTH;
 				if (check_chunk(world, chunkX, chunkZ))
-					return (NULL);
+					goto startLoop;
 			}
 			for (int32_t j = 0; j <= i * 2 - 1; ++j)
 			{
 				chunkZ -= CHUNK_WIDTH;
 				if (check_chunk(world, chunkX, chunkZ))
-					return (NULL);
+					goto startLoop;
 			}
 		}
-		//struct timespec ts;
-		//ts.tv_sec = 0;
-		//ts.tv_nsec = 10000000;
-		//nanosleep(&ts, NULL);
+		struct timespec ts;
+		ts.tv_sec = 0;
+		ts.tv_nsec = 10000000;
+		nanosleep(&ts, NULL);
 	}
-	//goto startLoop;
+	goto startLoop;
 	return (NULL);
 }

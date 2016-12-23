@@ -6,6 +6,7 @@ void chunk_init(t_chunk *chunk, t_world *world, int32_t x, int32_t z)
 	chunk->world = world;
 	chunk->x = x;
 	chunk->z = z;
+	pthread_mutex_init(&chunk->gl_mutex, NULL);
 	chunk->vao_colors_size = 0;
 	chunk->vao_colors_pos = 0;
 	chunk->vao_colors = NULL;
@@ -35,7 +36,14 @@ void chunk_init(t_chunk *chunk, t_world *world, int32_t x, int32_t z)
 				uint8_t blockType = 0;
 				if (blockY < noiseIndex)
 				{
-					blockType = 1;
+					if (blockY < CHUNK_HEIGHT / 3)
+						blockType = 1;
+					else if (blockY == CHUNK_HEIGHT / 3)
+						blockType = 2;
+					else if (blockY <= CHUNK_HEIGHT / 2)
+						blockType = 3;
+					else
+						blockType = 4;
 					if (!(chunk->blocks[blockX][blockY][blockZ] = malloc(sizeof(****chunk->blocks))))
 						ERROR("malloc failed");
 					block_init(chunk->blocks[blockX][blockY][blockZ], chunk, blockX + x, blockY, blockZ + z, blockType);
@@ -47,8 +55,8 @@ void chunk_init(t_chunk *chunk, t_world *world, int32_t x, int32_t z)
 			}
 		}
 	}
-	if (!(chunk->glList = glGenLists(1)))
-		ERROR("glGenList failed");
+	/*if (!(chunk->glList = glGenLists(1)))
+		ERROR("glGenList failed");*/
 	chunk_rebuild(chunk);
 	if (chunk->chunkXLess)
 		chunk_rebuild_borders(chunk->chunkXLess, CHUNK_BORDER_X_MORE);
@@ -70,8 +78,9 @@ void chunk_rebuild(t_chunk *chunk)
 			{
 				if (chunk->blocks[blockX][blockY][blockZ])
 				{
-					block_calculate_visibility(chunk->blocks[blockX][blockY][blockZ]);
-					block_calculate_light(chunk->blocks[blockX][blockY][blockZ]);
+					t_vec3i pos = {chunk->x + blockX, blockY, chunk->z + blockZ};
+					block_calculate_visibility(chunk->blocks[blockX][blockY][blockZ], &pos);
+					block_calculate_light(chunk->blocks[blockX][blockY][blockZ], &pos);
 				}
 			}
 		}
@@ -89,8 +98,9 @@ void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders)
 			{
 				if (chunk->blocks[0][blockY][blockZ])
 				{
-					block_calculate_visibility(chunk->blocks[0][blockY][blockZ]);
-					block_calculate_light(chunk->blocks[0][blockY][blockZ]);
+					t_vec3i pos = {chunk->x, blockY, chunk->z + blockZ};
+					block_calculate_visibility(chunk->blocks[0][blockY][blockZ], &pos);
+					block_calculate_light(chunk->blocks[0][blockY][blockZ], &pos);
 				}
 			}
 		}
@@ -103,8 +113,9 @@ void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders)
 			{
 				if (chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ])
 				{
-					block_calculate_visibility(chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ]);
-					block_calculate_light(chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ]);
+					t_vec3i pos = {chunk->x + CHUNK_WIDTH - 1, blockY, chunk->z + blockZ};
+					block_calculate_visibility(chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ], &pos);
+					block_calculate_light(chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ], &pos);
 				}
 			}
 		}
@@ -117,8 +128,9 @@ void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders)
 			{
 				if (chunk->blocks[blockX][blockY][0])
 				{
-					block_calculate_visibility(chunk->blocks[blockX][blockY][0]);
-					block_calculate_light(chunk->blocks[blockX][blockY][0]);
+					t_vec3i pos = {chunk->x + blockX, blockY, chunk->z};
+					block_calculate_visibility(chunk->blocks[blockX][blockY][0], &pos);
+					block_calculate_light(chunk->blocks[blockX][blockY][0], &pos);
 				}
 			}
 		}
@@ -131,8 +143,9 @@ void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders)
 			{
 				if (chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1])
 				{
-					block_calculate_visibility(chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1]);
-					block_calculate_light(chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1]);
+					t_vec3i pos = {chunk->x + blockX, blockY, chunk->z + CHUNK_WIDTH - 1};
+					block_calculate_visibility(chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1], &pos);
+					block_calculate_light(chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1], &pos);
 				}
 			}
 		}
@@ -177,6 +190,7 @@ void chunk_free(t_chunk *chunk)
 
 void chunk_redraw(t_chunk *chunk)
 {
+	pthread_mutex_lock(&chunk->gl_mutex);
 	///*
 	free(chunk->vao_colors);
 	free(chunk->vao_vertex);
@@ -198,18 +212,23 @@ void chunk_redraw(t_chunk *chunk)
 			for (uint32_t z = 0; z < CHUNK_WIDTH; ++z)
 			{
 				if (chunk->blocks[x][y][z])
-					block_draw(chunk->blocks[x][y][z]);
+				{
+					t_vec3i pos = {chunk->x + x, y, chunk->z + z};
+					block_draw(chunk->blocks[x][y][z], &pos);
+				}
 			}
 		}
 	}
 	//glEnd();
 	//glEndList();
+	pthread_mutex_unlock(&chunk->gl_mutex);
 }
 
 void chunk_render(t_chunk *chunk)
 {
 	if (!frustum_cube(chunk->world, chunk->x, 0, chunk->z, chunk->x + CHUNK_WIDTH, CHUNK_HEIGHT, chunk->z + CHUNK_WIDTH))
 		return;
+	pthread_mutex_lock(&chunk->gl_mutex);
 	///*
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -220,6 +239,7 @@ void chunk_render(t_chunk *chunk)
 	glDisableClientState(GL_VERTEX_ARRAY);
 	//*/
 	//glCallList(chunk->glList);
+	pthread_mutex_unlock(&chunk->gl_mutex);
 }
 
 t_block *chunk_block_get(t_chunk *chunk, int32_t x, int32_t y, int32_t z)

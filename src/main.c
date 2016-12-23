@@ -22,10 +22,10 @@ int main()
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	world_init(&env.world);
 	env.world.player.y = 50;
-	//pthread_create(&env.world.chunk_loader, NULL, chunk_loader, &env.world);
+	pthread_create(&env.world.chunk_loader, NULL, chunk_loader, &env.world);
 	while (!glfwWindowShouldClose(env.window.glfw_window))
 	{
-		chunk_loader(&env.world);
+		//chunk_loader(&env.world);
 		windowResizeListener(env.window.glfw_window, env.window.width, env.window.height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		player_orientate(&env.world.player);

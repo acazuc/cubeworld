@@ -4,6 +4,7 @@
 # include <GL/glu.h>
 # include <GL/gl.h>
 # include <GLFW/glfw3.h>
+# include <pthread.h>
 # include <stdlib.h>
 # include <unistd.h>
 # include <string.h>
@@ -12,21 +13,32 @@
 # include <math.h>
 # include <time.h>
 
-# define LOG(s) {printf("[LOG] %s (%s:%d)", s, __FILE__, __LINE__);}
-# define ERROR(s) {printf("[ERROR] %s (%s:%d)", s, __FILE__, __LINE__);exit(EXIT_FAILURE);}
+# define LOG(s) {printf("[LOG] %s (%s:%d)\n", s, __FILE__, __LINE__);}
+# define ERROR(s) {printf("[ERROR] %s (%s:%d)\n", s, __FILE__, __LINE__);exit(EXIT_FAILURE);}
 
 # define TO_RADIANS(angle) (angle / 180. * M_PI)
 # define TO_DEGREES(angle) (angle / M_PI / 180.)
 
 # define WINDOW_DEFAULT_WIDTH 1920
 # define WINDOW_DEFAULT_HEIGHT 1000
-# define WORLD_HEIGHT 128
+# define WORLD_HEIGHT 256
 # define CHUNK_WIDTH 16
 # define CHUNK_HEIGHT WORLD_HEIGHT
 # define CHUNK_BORDER_X_LESS 1
 # define CHUNK_BORDER_X_MORE 2
 # define CHUNK_BORDER_Z_LESS 4
 # define CHUNK_BORDER_Z_MORE 8
+# define LOAD_DISTANCE 8
+
+# define BLOCK_FACE_FRONT 1
+# define BLOCK_FACE_BACK 2
+# define BLOCK_FACE_LEFT 4
+# define BLOCK_FACE_RIGHT 8
+# define BLOCK_FACE_BOTTOM 16
+# define BLOCK_FACE_TOP 32
+
+# define true 1
+# define false 0
 
 typedef struct s_simplex_noise_octave t_simplex_noise_octave;
 typedef struct s_simplex_noise_grad t_simplex_noise_grad;
@@ -42,6 +54,8 @@ typedef struct s_vec3d t_vec3d;
 typedef struct s_env t_env;
 typedef char bool;
 
+
+void *chunk_loader(void *data);
 int main();
 void window_create(t_env *env);
 bool window_is_key_down(int key);
@@ -155,6 +169,7 @@ struct s_world
 	t_chunk_list *chunks;
 	t_entity **entities;
 	t_simplex_noise noise;
+	pthread_t chunk_loader;
 	float biome_noise_gain;
 	int32_t biome_noise_octaves;
 	int32_t biome_noise_hgrid;
@@ -163,18 +178,28 @@ struct s_world
 struct s_block
 {
 	t_chunk *chunk;
-	uint8_t visibleFace[6];
-	uint8_t type;
 	int32_t x;
 	int32_t y;
 	int32_t z;
 	int8_t cx;
 	int8_t cz;
 	uint8_t lights[6][4];
+	uint8_t visibleFace;
+	uint8_t type;
 	uint8_t red;
 	uint8_t green;
 	uint8_t blue;
 	uint8_t alpha;
+};
+
+struct s_block_dev
+{
+	t_chunk *chunk;
+	int32_t x;
+	int32_t y;
+	int32_t z;
+	uint8_t visibleFace;
+	uint8_t type;
 };
 
 struct s_chunk
@@ -184,7 +209,13 @@ struct s_chunk
 	t_chunk *chunkXMore;
 	t_chunk *chunkZLess;
 	t_chunk *chunkZMore;
-	t_block blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_WIDTH];
+	t_block *blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_WIDTH];
+	uint32_t vao_colors_size;
+	uint32_t vao_colors_pos;
+	uint8_t *vao_colors;
+	uint32_t vao_vertex_size;
+	uint32_t vao_vertex_pos;
+	uint8_t *vao_vertex;
 	int32_t x;
 	int32_t z;
 	GLuint glList;

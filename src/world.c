@@ -37,6 +37,7 @@ void world_chunk_remove(t_world *world, int32_t x, int32_t z)
 {
 	t_chunk_list *prv = NULL;
 	t_chunk_list *lst = world->chunks;
+	t_chunk *tmp;
 	while (lst)
 	{
 		if (lst->chunk->x == x && lst->chunk->z == z)
@@ -45,7 +46,9 @@ void world_chunk_remove(t_world *world, int32_t x, int32_t z)
 				prv->next = lst->next;
 			else
 				world->chunks = lst->next;
+			tmp = lst->chunk;
 			free(lst);
+			chunk_free(tmp);
 			return;
 		}
 	}

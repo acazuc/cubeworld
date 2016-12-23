@@ -10,34 +10,22 @@ int main()
 	srand(time(NULL));
 	if (!glfwInit())
 		ERROR("Can't init glfw");
+	printf("%lu, %lu\n", sizeof(struct s_block), sizeof(struct s_block_dev));
 	window_create(&env);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 	glClearDepth(1);
 	glClearColor(0.48, 0.65, 0.99, 0);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	world_init(&env.world);
-	double start = glfwGetTime();
 	env.world.player.y = 50;
-	#define SQ 8
-	for (int8_t x = -SQ; x < SQ; ++x)
-	{
-		for (int8_t z = -SQ; z < SQ; ++z)
-		{
-			t_chunk *chunk = malloc(sizeof(*chunk));
-			if (!chunk)
-				ERROR("malloc failed");
-			chunk_init(chunk, &env.world, x * CHUNK_WIDTH, z * CHUNK_WIDTH);
-			world_chunk_add(&env.world, chunk);
-		}
-		printf("%d\n", x);
-	}
-	double end = glfwGetTime();
-	printf("%llu\n", (long long unsigned)((end - start) * 1000000000));
+	//pthread_create(&env.world.chunk_loader, NULL, chunk_loader, &env.world);
 	while (!glfwWindowShouldClose(env.window.glfw_window))
 	{
+		chunk_loader(&env.world);
 		windowResizeListener(env.window.glfw_window, env.window.width, env.window.height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		player_orientate(&env.world.player);
@@ -108,7 +96,7 @@ void windowResizeListener(GLFWwindow *window, int32_t width, int32_t height)
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(60, (float)width / (float)height, .01f, 2000);
+	gluPerspective(60, (float)width / (float)height, .01, 2000);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 

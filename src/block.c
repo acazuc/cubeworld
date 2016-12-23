@@ -35,8 +35,7 @@ void block_init(t_block *block, t_chunk *chunk, int32_t x, int32_t y, int32_t z,
 	}
 	if (type == 0)
 		block->alpha = 0;
-	for (uint8_t i = 0; i < 6; ++i)
-		block->visibleFace[i] = block->alpha != 0;
+	block->visibleFace = block->alpha != 0 ? 0xff : 0;
 }
 
 void block_free(t_block *block)
@@ -60,12 +59,12 @@ static bool _block_calculate_is_transparent_other_chunk(t_chunk *chunk, int32_t 
 
 static bool _block_calculate_is_transparent(t_block *block, int32_t addX, int32_t addY, int32_t addZ)
 {
-	if ((int8_t)block->y + addY < 0 || (int8_t)block->y + addY >= CHUNK_HEIGHT - 1)
+	if (block->y + addY < 0 || block->y + addY >= CHUNK_HEIGHT)
 		return (1);
-	bool different = (addX < 0 && block->cx < (uint8_t)-addX)
-		|| (addX > 0 && block->cx + (uint8_t)addX > CHUNK_WIDTH - 1)
-		|| (addZ < 0 && block->cz < (uint8_t)-addZ)
-		|| (addZ > 0 && block->cz + (uint8_t)addZ > CHUNK_WIDTH - 1);
+	bool different = (addX < 0 && (int32_t)block->cx < -addX)
+		|| (addX > 0 && (int32_t)block->cx + addX >= CHUNK_WIDTH)
+		|| (addZ < 0 && (int32_t)block->cz < -addZ)
+		|| (addZ > 0 && (int32_t)block->cz + addZ >= CHUNK_WIDTH);
 	if (different)
 	{
 		int32_t newX = (int32_t)block->cx + addX;
@@ -105,12 +104,19 @@ void block_calculate_visibility(t_block *block)
 {
 	if (!block->alpha)
 		return;
-	block->visibleFace[0] = _block_calculate_is_transparent(block, 0, 0, -1);
-	block->visibleFace[1] = _block_calculate_is_transparent(block, 0, 0, 1);
-	block->visibleFace[2] = _block_calculate_is_transparent(block, -1, 0, 0);
-	block->visibleFace[3] = _block_calculate_is_transparent(block, 1, 0, 0);
-	block->visibleFace[4] = _block_calculate_is_transparent(block, 0, -1, 0);
-	block->visibleFace[5] = _block_calculate_is_transparent(block, 0, 1, 0);
+	block->visibleFace = 0;
+	if (_block_calculate_is_transparent(block, 0, 0, -1))
+		block->visibleFace |= BLOCK_FACE_FRONT;
+	if (_block_calculate_is_transparent(block, 0, 0, 1))
+		block->visibleFace |= BLOCK_FACE_BACK;
+	if (_block_calculate_is_transparent(block, -1, 0, 0))
+		block->visibleFace |= BLOCK_FACE_LEFT;
+	if (_block_calculate_is_transparent(block, 1, 0, 0))
+		block->visibleFace |= BLOCK_FACE_RIGHT;
+	if (_block_calculate_is_transparent(block, 0, -1, 0))
+		block->visibleFace |= BLOCK_FACE_BOTTOM;
+	if (_block_calculate_is_transparent(block, 0, 1, 0))
+		block->visibleFace |= BLOCK_FACE_TOP;
 }
 
 void _block_calculate_ambient_occlusion_light(t_block *block)
@@ -121,7 +127,7 @@ void _block_calculate_ambient_occlusion_light(t_block *block)
 		for (uint8_t point = 0; point < 4; ++point)
 			block->lights[face][point] = 255;
 	#define LESS 16
-	if (block->visibleFace[0])
+	if (block->visibleFace & BLOCK_FACE_FRONT)
 	{
 		if (block->cz > 0)
 		{
@@ -155,7 +161,7 @@ void _block_calculate_ambient_occlusion_light(t_block *block)
 			}
 		}
 	}
-	if (block->visibleFace[1])
+	if (block->visibleFace & BLOCK_FACE_BACK)
 	{
 		if (block->cz < CHUNK_WIDTH - 1)
 		{
@@ -189,7 +195,7 @@ void _block_calculate_ambient_occlusion_light(t_block *block)
 			}
 		}
 	}
-	if (block->visibleFace[2])
+	if (block->visibleFace & BLOCK_FACE_LEFT)
 	{
 		if (block->cx > 0)
 		{
@@ -224,7 +230,7 @@ void _block_calculate_ambient_occlusion_light(t_block *block)
 			}
 		}
 	}
-	if (block->visibleFace[3])
+	if (block->visibleFace & BLOCK_FACE_RIGHT)
 	{
 		if (block->cx < CHUNK_WIDTH - 1)
 		{
@@ -259,7 +265,7 @@ void _block_calculate_ambient_occlusion_light(t_block *block)
 			}
 		}
 	}
-	if (block->visibleFace[4])
+	if (block->visibleFace & BLOCK_FACE_BOTTOM)
 	{
 		if (block->y > 0)
 		{
@@ -293,7 +299,7 @@ void _block_calculate_ambient_occlusion_light(t_block *block)
 			}
 		}
 	}
-	if (block->visibleFace[5])
+	if (block->visibleFace & BLOCK_FACE_TOP)
 	{
 		if (block->y < CHUNK_HEIGHT - 1)
 		{
@@ -334,14 +340,54 @@ void block_calculate_light(t_block *block)
 	_block_calculate_ambient_occlusion_light(block);
 }
 
+/*static void _add_point(t_block *block, uint8_t light, int32_t x, int32_t y, int32_t z)
+{
+	double color = light / 255.;
+	block->chunk->vao_colors[block->chunk->vao_colors_pos++] = color * block->red;
+	block->chunk->vao_colors[block->chunk->vao_colors_pos++] = color * block->green;
+	block->chunk->vao_colors[block->chunk->vao_colors_pos++] = color * block->blue;
+	block->chunk->vao_colors[block->chunk->vao_colors_pos++] = block->alpha;
+	block->chunk->vao_vertex[block->chunk->vao_vertex_pos++] = block->x + x;
+	block->chunk->vao_vertex[block->chunk->vao_vertex_pos++] = block->y + y;
+	block->chunk->vao_vertex[block->chunk->vao_vertex_pos++] = block->z + z;
+}*/
+
 void block_draw(t_block *block)
 {
 	if (!block->alpha)
 		return;
-	if (block->visibleFace[0])
+	uint8_t reallocSize = 0;
+	if (block->visibleFace & BLOCK_FACE_FRONT)
+		++reallocSize;
+	if (block->visibleFace & BLOCK_FACE_BACK)
+		++reallocSize;
+	if (block->visibleFace & BLOCK_FACE_LEFT)
+		++reallocSize;
+	if (block->visibleFace & BLOCK_FACE_RIGHT)
+		++reallocSize;
+	if (block->visibleFace & BLOCK_FACE_BOTTOM)
+		++reallocSize;
+	if (block->visibleFace & BLOCK_FACE_TOP)
+		++reallocSize;
+	(void)reallocSize;
+	/*
+	if (reallocSize)
+	{
+		block->chunk->vao_colors_size += reallocSize * 4 * 4; // r/g/b/a
+		block->chunk->vao_colors = realloc(block->chunk->vao_colors, block->chunk->vao_colors_size);
+		block->chunk->vao_vertex_size += reallocSize * 4 * 3; // x/y/z
+		block->chunk->vao_vertex = realloc(block->chunk->vao_vertex, block->chunk->vao_vertex_size);
+	}*/
+	if (block->visibleFace & BLOCK_FACE_FRONT)
 	{
 		if (block->lights[0][1] + block->lights[0][3] > block->lights[0][0] + block->lights[0][2])
 		{
+			//_add_point(block, block->lights[0][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			//_add_point(block, block->lights[0][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			//_add_point(block, block->lights[0][3], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			//_add_point(block, block->lights[0][3], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			//_add_point(block, block->lights[0][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			//_add_point(block, block->lights[0][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
 			glColor4ub(block->lights[0][1] / 255. * block->red, block->lights[0][1] / 255. * block->green, block->lights[0][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[0][2] / 255. * block->red, block->lights[0][2] / 255. * block->green, block->lights[0][2] / 255. * block->blue, block->alpha);
@@ -357,6 +403,12 @@ void block_draw(t_block *block)
 		}
 		else
 		{
+			//_add_point(block, block->lights[0][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			//_add_point(block, block->lights[0][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			//_add_point(block, block->lights[0][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			//_add_point(block, block->lights[0][3], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			//_add_point(block, block->lights[0][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			//_add_point(block, block->lights[0][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
 			glColor4ub(block->lights[0][0] / 255. * block->red, block->lights[0][0] / 255. * block->green, block->lights[0][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[0][1] / 255. * block->red, block->lights[0][1] / 255. * block->green, block->lights[0][1] / 255. * block->blue, block->alpha);
@@ -371,10 +423,16 @@ void block_draw(t_block *block)
 			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 		}
 	}
-	if (block->visibleFace[1])
+	if (block->visibleFace & BLOCK_FACE_BACK)
 	{
 		if (block->lights[1][1] + block->lights[1][3] > block->lights[1][0] + block->lights[1][2])
 		{
+			//_add_point(block, block->lights[1][1], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			//_add_point(block, block->lights[1][2], +BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			//_add_point(block, block->lights[1][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			//_add_point(block, block->lights[1][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			//_add_point(block, block->lights[1][0], -BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			//_add_point(block, block->lights[1][1], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
 			glColor4ub(block->lights[1][1] / 255. * block->red, block->lights[1][1] / 255. * block->green, block->lights[1][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 			glColor4ub(block->lights[1][2] / 255. * block->red, block->lights[1][2] / 255. * block->green, block->lights[1][2] / 255. * block->blue, block->alpha);
@@ -404,7 +462,7 @@ void block_draw(t_block *block)
 			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 		}
 	}
-	if (block->visibleFace[2])
+	if (block->visibleFace & BLOCK_FACE_LEFT)
 	{
 		if (block->lights[2][1] + block->lights[2][3] > block->lights[2][0] + block->lights[2][2])
 		{
@@ -437,7 +495,7 @@ void block_draw(t_block *block)
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 		}
 	}
-	if (block->visibleFace[3])
+	if (block->visibleFace & BLOCK_FACE_RIGHT)
 	{
 		if (block->lights[3][1] + block->lights[3][3] > block->lights[3][0] + block->lights[3][2])
 		{
@@ -470,7 +528,7 @@ void block_draw(t_block *block)
 			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 		}
 	}
-	if (block->visibleFace[4])
+	if (block->visibleFace & BLOCK_FACE_BOTTOM)
 	{
 		if (block->lights[4][1] + block->lights[4][3] > block->lights[4][0] + block->lights[4][2])
 		{
@@ -503,7 +561,7 @@ void block_draw(t_block *block)
 			glVertex3f(block->x + BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 		}
 	}
-	if (block->visibleFace[5])
+	if (block->visibleFace & BLOCK_FACE_TOP)
 	{
 		if (block->lights[5][1] + block->lights[5][3] > block->lights[5][0] + block->lights[5][2])
 		{

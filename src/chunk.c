@@ -28,8 +28,16 @@ void chunk_init(t_chunk *chunk, t_world *world, int32_t x, int32_t z)
 			{
 				uint8_t blockType = 0;
 				if (blockY < noiseIndex)
+				{
 					blockType = 1;
-				block_init(&chunk->blocks[blockX][blockY][blockZ], chunk, blockX + x, blockY, blockZ + z, blockType);
+					if (!(chunk->blocks[blockX][blockY][blockZ] = malloc(sizeof(****chunk->blocks))))
+						ERROR("malloc failed");
+					block_init(chunk->blocks[blockX][blockY][blockZ], chunk, blockX + x, blockY, blockZ + z, blockType);
+				}
+				else
+				{
+					chunk->blocks[blockX][blockY][blockZ] = NULL;
+				}
 			}
 		}
 	}
@@ -54,8 +62,11 @@ void chunk_rebuild(t_chunk *chunk)
 		{
 			for (uint32_t blockZ = 0; blockZ < CHUNK_WIDTH; ++blockZ)
 			{
-				block_calculate_visibility(&chunk->blocks[blockX][blockY][blockZ]);
-				block_calculate_light(&chunk->blocks[blockX][blockY][blockZ]);
+				if (chunk->blocks[blockX][blockY][blockZ])
+				{
+					block_calculate_visibility(chunk->blocks[blockX][blockY][blockZ]);
+					block_calculate_light(chunk->blocks[blockX][blockY][blockZ]);
+				}
 			}
 		}
 	}
@@ -70,8 +81,11 @@ void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders)
 		{
 			for (uint32_t blockZ = 0; blockZ < CHUNK_WIDTH; ++blockZ)
 			{
-				block_calculate_visibility(&chunk->blocks[0][blockY][blockZ]);
-				block_calculate_light(&chunk->blocks[0][blockY][blockZ]);
+				if (chunk->blocks[0][blockY][blockZ])
+				{
+					block_calculate_visibility(chunk->blocks[0][blockY][blockZ]);
+					block_calculate_light(chunk->blocks[0][blockY][blockZ]);
+				}
 			}
 		}
 	}
@@ -81,8 +95,11 @@ void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders)
 		{
 			for (uint32_t blockZ = 0; blockZ < CHUNK_WIDTH; ++blockZ)
 			{
-				block_calculate_visibility(&chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ]);
-				block_calculate_light(&chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ]);
+				if (chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ])
+				{
+					block_calculate_visibility(chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ]);
+					block_calculate_light(chunk->blocks[CHUNK_WIDTH - 1][blockY][blockZ]);
+				}
 			}
 		}
 	}
@@ -92,8 +109,11 @@ void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders)
 		{
 			for (uint32_t blockY = 0; blockY < CHUNK_HEIGHT; ++blockY)
 			{
-				block_calculate_visibility(&chunk->blocks[blockX][blockY][0]);
-				block_calculate_light(&chunk->blocks[blockX][blockY][0]);
+				if (chunk->blocks[blockX][blockY][0])
+				{
+					block_calculate_visibility(chunk->blocks[blockX][blockY][0]);
+					block_calculate_light(chunk->blocks[blockX][blockY][0]);
+				}
 			}
 		}
 	}
@@ -103,8 +123,11 @@ void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders)
 		{
 			for (uint32_t blockY = 0; blockY < CHUNK_HEIGHT; ++blockY)
 			{
-				block_calculate_visibility(&chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1]);
-				block_calculate_light(&chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1]);
+				if (chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1])
+				{
+					block_calculate_visibility(chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1]);
+					block_calculate_light(chunk->blocks[blockX][blockY][CHUNK_WIDTH - 1]);
+				}
 			}
 		}
 	}
@@ -113,6 +136,36 @@ void chunk_rebuild_borders(t_chunk *chunk, uint8_t borders)
 
 void chunk_free(t_chunk *chunk)
 {
+	if (chunk->chunkXLess)
+	{
+		chunk->chunkXLess->chunkXMore = NULL;
+		chunk_rebuild_borders(chunk->chunkXLess, CHUNK_BORDER_X_MORE);
+	}
+	if (chunk->chunkXMore)
+	{
+		chunk->chunkXMore->chunkXLess = NULL;
+		chunk_rebuild_borders(chunk->chunkXMore, CHUNK_BORDER_X_LESS);
+	}
+	if (chunk->chunkZLess)
+	{
+		chunk->chunkZLess->chunkZMore = NULL;
+		chunk_rebuild_borders(chunk->chunkZLess, CHUNK_BORDER_Z_MORE);
+	}
+	if (chunk->chunkZMore)
+	{
+		chunk->chunkZMore->chunkZLess = NULL;
+		chunk_rebuild_borders(chunk->chunkZMore, CHUNK_BORDER_Z_LESS);
+	}
+	for (uint32_t x = 0; x < CHUNK_WIDTH; ++x)
+	{
+		for (uint32_t y = 0; y < CHUNK_HEIGHT; ++y)
+		{
+			for (uint32_t z = 0; z < CHUNK_WIDTH; ++z)
+			{
+				free(chunk->blocks[x][y][z]);
+			}
+		}
+	}
 	free(chunk);
 }
 
@@ -126,7 +179,8 @@ void chunk_redraw(t_chunk *chunk)
 		{
 			for (uint32_t z = 0; z < CHUNK_WIDTH; ++z)
 			{
-				block_draw(&chunk->blocks[x][y][z]);
+				if (chunk->blocks[x][y][z])
+					block_draw(chunk->blocks[x][y][z]);
 			}
 		}
 	}
@@ -143,5 +197,5 @@ t_block *chunk_block_get(t_chunk *chunk, int32_t x, int32_t y, int32_t z)
 {
 	if (x < 0 || x >= CHUNK_WIDTH || y < 0 || y >= CHUNK_HEIGHT || z < 0 || z >= CHUNK_WIDTH)
 		return (NULL);
-	return (&chunk->blocks[x][y][z]);
+	return (chunk->blocks[x][y][z]);
 }

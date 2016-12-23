@@ -340,7 +340,7 @@ void block_calculate_light(t_block *block)
 	_block_calculate_ambient_occlusion_light(block);
 }
 
-/*static void _add_point(t_block *block, uint8_t light, int32_t x, int32_t y, int32_t z)
+static void _add_point(t_block *block, uint8_t light, float x, float y, float z)
 {
 	double color = light / 255.;
 	block->chunk->vao_colors[block->chunk->vao_colors_pos++] = color * block->red;
@@ -350,12 +350,13 @@ void block_calculate_light(t_block *block)
 	block->chunk->vao_vertex[block->chunk->vao_vertex_pos++] = block->x + x;
 	block->chunk->vao_vertex[block->chunk->vao_vertex_pos++] = block->y + y;
 	block->chunk->vao_vertex[block->chunk->vao_vertex_pos++] = block->z + z;
-}*/
+}
 
 void block_draw(t_block *block)
 {
 	if (!block->alpha)
 		return;
+	///*
 	uint8_t reallocSize = 0;
 	if (block->visibleFace & BLOCK_FACE_FRONT)
 		++reallocSize;
@@ -369,26 +370,28 @@ void block_draw(t_block *block)
 		++reallocSize;
 	if (block->visibleFace & BLOCK_FACE_TOP)
 		++reallocSize;
-	(void)reallocSize;
-	/*
-	if (reallocSize)
-	{
-		block->chunk->vao_colors_size += reallocSize * 4 * 4; // r/g/b/a
-		block->chunk->vao_colors = realloc(block->chunk->vao_colors, block->chunk->vao_colors_size);
-		block->chunk->vao_vertex_size += reallocSize * 4 * 3; // x/y/z
-		block->chunk->vao_vertex = realloc(block->chunk->vao_vertex, block->chunk->vao_vertex_size);
-	}*/
+	if (!reallocSize)
+		return;
+	block->chunk->vao_colors_size += reallocSize * 6 * 4; // r/g/b/a
+	if (!(block->chunk->vao_colors = realloc(block->chunk->vao_colors, block->chunk->vao_colors_size)))
+		ERROR("realloc failed");
+	block->chunk->vao_vertex_size += reallocSize * 6 * 4 * 3; // x/y/z
+	if (!(block->chunk->vao_vertex = realloc(block->chunk->vao_vertex, block->chunk->vao_vertex_size)))
+		ERROR("realloc failed");
+	//*/
 	if (block->visibleFace & BLOCK_FACE_FRONT)
 	{
 		if (block->lights[0][1] + block->lights[0][3] > block->lights[0][0] + block->lights[0][2])
 		{
-			//_add_point(block, block->lights[0][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
-			//_add_point(block, block->lights[0][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
-			//_add_point(block, block->lights[0][3], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
-			//_add_point(block, block->lights[0][3], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
-			//_add_point(block, block->lights[0][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
-			//_add_point(block, block->lights[0][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
-			glColor4ub(block->lights[0][1] / 255. * block->red, block->lights[0][1] / 255. * block->green, block->lights[0][1] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[0][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[0][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[0][3], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[0][3], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[0][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[0][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[0][1] / 255. * block->red, block->lights[0][1] / 255. * block->green, block->lights[0][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[0][2] / 255. * block->red, block->lights[0][2] / 255. * block->green, block->lights[0][2] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
@@ -399,17 +402,19 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[0][0] / 255. * block->red, block->lights[0][0] / 255. * block->green, block->lights[0][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[0][1] / 255. * block->red, block->lights[0][1] / 255. * block->green, block->lights[0][1] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
+			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);*/
 		}
 		else
 		{
-			//_add_point(block, block->lights[0][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
-			//_add_point(block, block->lights[0][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
-			//_add_point(block, block->lights[0][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
-			//_add_point(block, block->lights[0][3], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
-			//_add_point(block, block->lights[0][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
-			//_add_point(block, block->lights[0][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
-			glColor4ub(block->lights[0][0] / 255. * block->red, block->lights[0][0] / 255. * block->green, block->lights[0][0] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[0][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[0][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[0][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[0][3], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[0][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[0][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[0][0] / 255. * block->red, block->lights[0][0] / 255. * block->green, block->lights[0][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[0][1] / 255. * block->red, block->lights[0][1] / 255. * block->green, block->lights[0][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
@@ -420,20 +425,22 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[0][0] / 255. * block->red, block->lights[0][0] / 255. * block->green, block->lights[0][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[0][2] / 255. * block->red, block->lights[0][2] / 255. * block->green, block->lights[0][2] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
+			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);*/
 		}
 	}
 	if (block->visibleFace & BLOCK_FACE_BACK)
 	{
 		if (block->lights[1][1] + block->lights[1][3] > block->lights[1][0] + block->lights[1][2])
 		{
-			//_add_point(block, block->lights[1][1], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
-			//_add_point(block, block->lights[1][2], +BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
-			//_add_point(block, block->lights[1][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
-			//_add_point(block, block->lights[1][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
-			//_add_point(block, block->lights[1][0], -BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
-			//_add_point(block, block->lights[1][1], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
-			glColor4ub(block->lights[1][1] / 255. * block->red, block->lights[1][1] / 255. * block->green, block->lights[1][1] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[1][1], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[1][2], +BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[1][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[1][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[1][0], -BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[1][1], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[1][1] / 255. * block->red, block->lights[1][1] / 255. * block->green, block->lights[1][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 			glColor4ub(block->lights[1][2] / 255. * block->red, block->lights[1][2] / 255. * block->green, block->lights[1][2] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
@@ -444,11 +451,19 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[1][0] / 255. * block->red, block->lights[1][0] / 255. * block->green, block->lights[1][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 			glColor4ub(block->lights[1][1] / 255. * block->red, block->lights[1][1] / 255. * block->green, block->lights[1][1] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
+			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);*/
 		}
 		else
 		{
-			glColor4ub(block->lights[1][0] / 255. * block->red, block->lights[1][0] / 255. * block->green, block->lights[1][0] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[1][0], -BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[1][1], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[1][2], +BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[1][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[1][0], -BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[1][2], +BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[1][0] / 255. * block->red, block->lights[1][0] / 255. * block->green, block->lights[1][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 			glColor4ub(block->lights[1][1] / 255. * block->red, block->lights[1][1] / 255. * block->green, block->lights[1][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
@@ -459,14 +474,22 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[1][0] / 255. * block->red, block->lights[1][0] / 255. * block->green, block->lights[1][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 			glColor4ub(block->lights[1][2] / 255. * block->red, block->lights[1][2] / 255. * block->green, block->lights[1][2] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
+			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);*/
 		}
 	}
 	if (block->visibleFace & BLOCK_FACE_LEFT)
 	{
 		if (block->lights[2][1] + block->lights[2][3] > block->lights[2][0] + block->lights[2][2])
 		{
-			glColor4ub(block->lights[2][1] / 255. * block->red, block->lights[2][1] / 255. * block->green, block->lights[2][1] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[2][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[2][2], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[2][3], -BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[2][3], -BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[2][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[2][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[2][1] / 255. * block->red, block->lights[2][1] / 255. * block->green, block->lights[2][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[2][2] / 255. * block->red, block->lights[2][2] / 255. * block->green, block->lights[2][2] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
@@ -477,11 +500,19 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[2][0] / 255. * block->red, block->lights[2][0] / 255. * block->green, block->lights[2][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[2][1] / 255. * block->red, block->lights[2][1] / 255. * block->green, block->lights[2][1] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
+			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);*/
 		}
 		else
 		{
-			glColor4ub(block->lights[2][0] / 255. * block->red, block->lights[2][0] / 255. * block->green, block->lights[2][0] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[2][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[2][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[2][2], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[2][3], -BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[2][0], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[2][2], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[2][0] / 255. * block->red, block->lights[2][0] / 255. * block->green, block->lights[2][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[2][1] / 255. * block->red, block->lights[2][1] / 255. * block->green, block->lights[2][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
@@ -492,14 +523,22 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[2][0] / 255. * block->red, block->lights[2][0] / 255. * block->green, block->lights[2][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[2][2] / 255. * block->red, block->lights[2][2] / 255. * block->green, block->lights[2][2] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
+			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);*/
 		}
 	}
 	if (block->visibleFace & BLOCK_FACE_RIGHT)
 	{
 		if (block->lights[3][1] + block->lights[3][3] > block->lights[3][0] + block->lights[3][2])
 		{
-			glColor4ub(block->lights[3][1] / 255. * block->red, block->lights[3][1] / 255. * block->green, block->lights[3][1] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[3][1], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[3][2], +BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[3][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[3][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[3][0], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[3][1], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[3][1] / 255. * block->red, block->lights[3][1] / 255. * block->green, block->lights[3][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[3][2] / 255. * block->red, block->lights[3][2] / 255. * block->green, block->lights[3][2] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
@@ -510,11 +549,19 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[3][0] / 255. * block->red, block->lights[3][0] / 255. * block->green, block->lights[3][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x + BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[3][1] / 255. * block->red, block->lights[3][1] / 255. * block->green, block->lights[3][1] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
+			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);*/
 		}
 		else
 		{
-			glColor4ub(block->lights[3][0] / 255. * block->red, block->lights[3][0] / 255. * block->green, block->lights[3][0] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[3][0], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[3][1], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[3][2], +BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[3][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[3][0], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[3][2], +BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[3][0] / 255. * block->red, block->lights[3][0] / 255. * block->green, block->lights[3][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x + BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[3][1] / 255. * block->red, block->lights[3][1] / 255. * block->green, block->lights[3][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
@@ -525,14 +572,22 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[3][0] / 255. * block->red, block->lights[3][0] / 255. * block->green, block->lights[3][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x + BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[3][2] / 255. * block->red, block->lights[3][2] / 255. * block->green, block->lights[3][2] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
+			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);*/
 		}
 	}
 	if (block->visibleFace & BLOCK_FACE_BOTTOM)
 	{
 		if (block->lights[4][1] + block->lights[4][3] > block->lights[4][0] + block->lights[4][2])
 		{
-			glColor4ub(block->lights[4][1] / 255. * block->red, block->lights[4][1] / 255. * block->green, block->lights[4][1] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[4][1], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[4][2], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[4][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[4][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[4][0], -BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[4][1], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[4][1] / 255. * block->red, block->lights[4][1] / 255. * block->green, block->lights[4][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[4][2] / 255. * block->red, block->lights[4][2] / 255. * block->green, block->lights[4][2] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x + BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
@@ -543,11 +598,19 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[4][0] / 255. * block->red, block->lights[4][0] / 255. * block->green, block->lights[4][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 			glColor4ub(block->lights[4][1] / 255. * block->red, block->lights[4][1] / 255. * block->green, block->lights[4][1] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
+			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);*/
 		}
 		else
 		{
-			glColor4ub(block->lights[4][0] / 255. * block->red, block->lights[4][0] / 255. * block->green, block->lights[4][0] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[4][0], -BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[4][1], -BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[4][2], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[4][3], +BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[4][0], -BLOCK_WIDTH, -BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[4][2], +BLOCK_WIDTH, -BLOCK_WIDTH, -BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[4][0] / 255. * block->red, block->lights[4][0] / 255. * block->green, block->lights[4][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 			glColor4ub(block->lights[4][1] / 255. * block->red, block->lights[4][1] / 255. * block->green, block->lights[4][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
@@ -558,14 +621,22 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[4][0] / 255. * block->red, block->lights[4][0] / 255. * block->green, block->lights[4][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 			glColor4ub(block->lights[4][2] / 255. * block->red, block->lights[4][2] / 255. * block->green, block->lights[4][2] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x + BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);
+			glVertex3f(block->x + BLOCK_WIDTH, block->y - BLOCK_WIDTH, block->z - BLOCK_WIDTH);*/
 		}
 	}
 	if (block->visibleFace & BLOCK_FACE_TOP)
 	{
 		if (block->lights[5][1] + block->lights[5][3] > block->lights[5][0] + block->lights[5][2])
 		{
-			glColor4ub(block->lights[5][1] / 255. * block->red, block->lights[5][1] / 255. * block->green, block->lights[5][1] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[5][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[5][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[5][3], +BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[5][3], +BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[5][0], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[5][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[5][1] / 255. * block->red, block->lights[5][1] / 255. * block->green, block->lights[5][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
 			glColor4ub(block->lights[5][2] / 255. * block->red, block->lights[5][2] / 255. * block->green, block->lights[5][2] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
@@ -576,11 +647,19 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[5][0] / 255. * block->red, block->lights[5][0] / 255. * block->green, block->lights[5][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 			glColor4ub(block->lights[5][1] / 255. * block->red, block->lights[5][1] / 255. * block->green, block->lights[5][1] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
+			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);*/
 		}
 		else
 		{
-			glColor4ub(block->lights[5][0] / 255. * block->red, block->lights[5][0] / 255. * block->green, block->lights[5][0] / 255. * block->blue, block->alpha);
+			///*
+			_add_point(block, block->lights[5][0], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[5][1], -BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[5][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			_add_point(block, block->lights[5][3], +BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[5][0], -BLOCK_WIDTH, +BLOCK_WIDTH, +BLOCK_WIDTH);
+			_add_point(block, block->lights[5][2], +BLOCK_WIDTH, +BLOCK_WIDTH, -BLOCK_WIDTH);
+			//*/
+			/*glColor4ub(block->lights[5][0] / 255. * block->red, block->lights[5][0] / 255. * block->green, block->lights[5][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 			glColor4ub(block->lights[5][1] / 255. * block->red, block->lights[5][1] / 255. * block->green, block->lights[5][1] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
@@ -591,7 +670,7 @@ void block_draw(t_block *block)
 			glColor4ub(block->lights[5][0] / 255. * block->red, block->lights[5][0] / 255. * block->green, block->lights[5][0] / 255. * block->blue, block->alpha);
 			glVertex3f(block->x - BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z + BLOCK_WIDTH);
 			glColor4ub(block->lights[5][2] / 255. * block->red, block->lights[5][2] / 255. * block->green, block->lights[5][2] / 255. * block->blue, block->alpha);
-			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);
+			glVertex3f(block->x + BLOCK_WIDTH, block->y + BLOCK_WIDTH, block->z - BLOCK_WIDTH);*/
 		}
 	}
 }

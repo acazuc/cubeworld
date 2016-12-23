@@ -21,7 +21,7 @@
 
 # define WINDOW_DEFAULT_WIDTH 1920
 # define WINDOW_DEFAULT_HEIGHT 1000
-# define WORLD_HEIGHT 256
+# define WORLD_HEIGHT 128
 # define CHUNK_WIDTH 16
 # define CHUNK_HEIGHT WORLD_HEIGHT
 # define CHUNK_BORDER_X_LESS 1
@@ -108,6 +108,9 @@ double vec3d_size(t_vec3d *vector);
 
 float perlin_noise(int32_t x, int32_t y, float gain, int32_t octaves, int32_t hgrid);
 
+void frustum_update(t_world *world);
+bool frustum_cube(t_world *world, float x1, float y1, float z1, float x2, float y2, float z2);
+
 struct s_simplex_noise_octave
 {
 	short perm[512];
@@ -173,6 +176,7 @@ struct s_world
 	float biome_noise_gain;
 	int32_t biome_noise_octaves;
 	int32_t biome_noise_hgrid;
+	float frustum[6][4];
 };
 
 struct s_block
@@ -215,7 +219,7 @@ struct s_chunk
 	uint8_t *vao_colors;
 	uint32_t vao_vertex_size;
 	uint32_t vao_vertex_pos;
-	uint8_t *vao_vertex;
+	int32_t *vao_vertex;
 	int32_t x;
 	int32_t z;
 	GLuint glList;

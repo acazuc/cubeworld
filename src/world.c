@@ -60,6 +60,7 @@ void world_render(t_world *world)
 	glRotatef(world->player.rx, 1, 0, 0);
 	glRotatef(world->player.ry, 0, 1, 0);
 	glTranslated(-world->player.x, -world->player.y, -world->player.z);
+	frustum_update(world);
 	t_chunk_list *lst = world->chunks;
 	while (lst)
 	{

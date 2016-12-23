@@ -6,6 +6,12 @@ void chunk_init(t_chunk *chunk, t_world *world, int32_t x, int32_t z)
 	chunk->world = world;
 	chunk->x = x;
 	chunk->z = z;
+	chunk->vao_colors_size = 0;
+	chunk->vao_colors_pos = 0;
+	chunk->vao_colors = NULL;
+	chunk->vao_vertex_size = 0;
+	chunk->vao_vertex_pos = 0;
+	chunk->vao_vertex = NULL;
 	chunk->chunkXLess = world_chunk_get(world, x - CHUNK_WIDTH, z);
 	chunk->chunkXMore = world_chunk_get(world, x + CHUNK_WIDTH, z);
 	chunk->chunkZLess = world_chunk_get(world, x, z - CHUNK_WIDTH);
@@ -171,8 +177,20 @@ void chunk_free(t_chunk *chunk)
 
 void chunk_redraw(t_chunk *chunk)
 {
-	glNewList(chunk->glList, GL_COMPILE);
-	glBegin(GL_TRIANGLES);
+	///*
+	free(chunk->vao_colors);
+	free(chunk->vao_vertex);
+	chunk->vao_colors_size = 0;
+	chunk->vao_colors_pos = 0;
+	if (!(chunk->vao_colors = malloc(1)))
+		ERROR("malloc failed");
+	chunk->vao_vertex_size = 0;
+	chunk->vao_vertex_pos = 0;
+	if (!(chunk->vao_vertex = malloc(1)))
+		ERROR("malloc failed");
+	//*/
+	//glNewList(chunk->glList, GL_COMPILE);
+	//glBegin(GL_TRIANGLES);
 	for (uint32_t x = 0; x < CHUNK_WIDTH; ++x)
 	{
 		for (uint32_t y = 0; y < CHUNK_HEIGHT; ++y)
@@ -184,13 +202,24 @@ void chunk_redraw(t_chunk *chunk)
 			}
 		}
 	}
-	glEnd();
-	glEndList();
+	//glEnd();
+	//glEndList();
 }
 
 void chunk_render(t_chunk *chunk)
 {
-	glCallList(chunk->glList);
+	if (!frustum_cube(chunk->world, chunk->x, 0, chunk->z, chunk->x + CHUNK_WIDTH, CHUNK_HEIGHT, chunk->z + CHUNK_WIDTH))
+		return;
+	///*
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+	glColorPointer(4, GL_UNSIGNED_BYTE, 0, chunk->vao_colors);
+	glVertexPointer(3, GL_INT, 0, chunk->vao_vertex);
+	glDrawArrays(GL_TRIANGLES, 0, chunk->vao_colors_pos / 4);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	//*/
+	//glCallList(chunk->glList);
 }
 
 t_block *chunk_block_get(t_chunk *chunk, int32_t x, int32_t y, int32_t z)
